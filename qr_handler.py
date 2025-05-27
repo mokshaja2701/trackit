@@ -5,12 +5,19 @@ import uuid
 import hashlib
 import cv2
 import numpy as np
-from pyzbar import pyzbar
 from io import BytesIO
 from datetime import datetime
 import pytz
 import logging
 from PIL import Image
+
+# Try to import pyzbar, but make it optional
+try:
+    from pyzbar import pyzbar
+    PYZBAR_AVAILABLE = True
+except ImportError:
+    PYZBAR_AVAILABLE = False
+    logging.warning("pyzbar not available - QR scanning will use fallback method")
 
 from app import db
 from models import Order, QRScan
@@ -93,8 +100,11 @@ def process_image_for_qr(image_data):
         clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
         enhanced = clahe.apply(gray)
         
-        # Use ZBar to detect QR codes
-        qr_codes = pyzbar.decode(enhanced)
+        # Use ZBar to detect QR codes if available
+        if PYZBAR_AVAILABLE:
+            qr_codes = pyzbar.decode(enhanced)
+        else:
+            qr_codes = []
         
         if qr_codes:
             # Get the first QR code found

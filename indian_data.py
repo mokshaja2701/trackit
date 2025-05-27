@@ -143,14 +143,6 @@ def initialize_mock_data():
         vendors.append(user)
         db.session.add(user)
 
-        # Create vendor profile
-        vendor = Vendor(
-            user_id=user.id,
-            business_name=vendor_data['business_name'],
-            business_type=vendor_data['business_type']
-        )
-        db.session.add(vendor)
-
     # Create delivery partners with extensive history
     delivery_partners = []
     for i, delivery_data in enumerate(INDIAN_DELIVERY_PARTNERS):
@@ -166,6 +158,19 @@ def initialize_mock_data():
         delivery_partners.append(user)
         db.session.add(user)
 
+    # Commit users first to get IDs
+    db.session.commit()
+
+    # Now create vendor profiles with proper user IDs
+    for vendor_user in vendors:
+        vendor_data = next(v for v in INDIAN_VENDORS if v['username'] == vendor_user.username)
+        vendor = Vendor(
+            user_id=vendor_user.id,
+            business_name=vendor_data['business_name'],
+            business_type=vendor_data['business_type']
+        )
+        db.session.add(vendor)
+    
     db.session.commit()
 
     print("Creating extensive order history for delivery partners...")
@@ -231,11 +236,11 @@ def initialize_mock_data():
             history = OrderHistory(
                 customer_id=customer.id,
                 vendor_id=vendor.id,
-                order_description=order.order_description,
                 window_time=order.window_time,
                 delivery_speed=order.delivery_speed,
-                completed_at=order.delivered_at,
-                customer_rating=random.choice([4, 5])
+                order_day=order.created_at.strftime('%A').lower(),
+                order_hour=order.created_at.hour,
+                was_successful=True
             )
             db.session.add(history)
 
