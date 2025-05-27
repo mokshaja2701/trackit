@@ -105,13 +105,15 @@ def initialize_mock_data():
     """Initialize mock data with authentic Indian information"""
     print("Initializing mock data with authentic Indian information...")
 
-    # Clear existing data
-    OrderHistory.query.delete()
-    QRScan.query.delete()
-    Order.query.delete()
-    Vendor.query.delete()
-    User.query.delete()
-    db.session.commit()
+    # Check if data already exists
+    existing_users = User.query.count()
+    if existing_users > 0:
+        print(f"Database already initialized with {existing_users} users")
+        print("Sample login credentials:")
+        print("Customer: aarav.mehta / password123")
+        print("Vendor: smart.stationery / vendor123") 
+        print("Delivery: rahul.delivery / delivery123")
+        return
 
     # Create exactly 20 customers
     customers = []
