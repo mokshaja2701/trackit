@@ -210,6 +210,7 @@ def initialize_mock_data():
             order.delivery_qr_code = generate_customer_delivery_qr(order.id, customer.id)
 
             db.session.add(order)
+            db.session.flush()  # Flush to get the order ID
 
             # Create QR scan records for completed orders
             scan_timestamps = [
@@ -219,8 +220,8 @@ def initialize_mock_data():
                 order.delivered_at
             ]
 
-            scan_types = ['package', 'package', 'package', 'customer_delivery']
-            scan_data_prefixes = ['PACKAGE', 'PACKAGE', 'PACKAGE', 'CUSTOMER_DELIVERY']
+            scan_types = ['package', 'package', 'package', 'delivery']
+            scan_data_prefixes = ['PACKAGE', 'PACKAGE', 'PACKAGE', 'DELIVERY']
 
             for scan_idx, (scan_time, scan_type, scan_prefix) in enumerate(zip(scan_timestamps, scan_types, scan_data_prefixes)):
                 scan_record = QRScan(
