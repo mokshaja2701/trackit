@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}डिलीवरी डैशबोर्ड Delivery Dashboard - TrackIt{% endblock %}
+{% block title %}Delivery Dashboard - TrackIt{% endblock %}
 
 {% block content %}
 <div class="container py-4">
@@ -9,15 +9,14 @@
         <div class="col-md-8">
             <h2 class="fw-bold">
                 <i class="fas fa-motorcycle me-2 text-warning"></i>
-                डिलीवरी डैशबोर्ड<br>
-                <small class="text-muted fs-5">Delivery Partner Dashboard</small>
+                Delivery Partner Dashboard
             </h2>
-            <p class="text-muted">स्वागत है {{ current_user.full_name }}! Welcome!</p>
+            <p class="text-muted">Welcome {{ current_user.full_name }}!</p>
         </div>
         <div class="col-md-4 text-md-end">
             <div class="btn-group" role="group">
                 <a href="{{ url_for('qr_scanner') }}" class="btn btn-warning btn-lg">
-                    <i class="fas fa-qrcode me-2"></i>QR स्कैनर QR Scanner
+                    <i class="fas fa-qrcode me-2"></i>QR Scanner
                 </a>
             </div>
         </div>
@@ -32,7 +31,7 @@
                         <i class="fas fa-truck"></i>
                     </div>
                     <h4 class="fw-bold">{{ assigned_orders|length }}</h4>
-                    <p class="text-muted mb-0">असाइन ऑर्डर<br>Assigned Orders</p>
+                    <p class="text-muted mb-0">Assigned Orders</p>
                 </div>
             </div>
         </div>
@@ -46,7 +45,7 @@
                     <h4 class="fw-bold">
                         {{ assigned_orders|selectattr('status', 'in', ['in_transit', 'out_for_delivery'])|list|length }}
                     </h4>
-                    <p class="text-muted mb-0">ट्रांजिट में<br>In Transit</p>
+                    <p class="text-muted mb-0">In Transit</p>
                 </div>
             </div>
         </div>
@@ -57,8 +56,8 @@
                     <div class="stat-icon bg-success text-white mb-3">
                         <i class="fas fa-check-circle"></i>
                     </div>
-                    <h4 class="fw-bold">{{ completed_orders|length }}</h4>
-                    <p class="text-muted mb-0">पूर्ण डिलीवरी<br>Completed</p>
+                    <h4 class="fw-bold">{{ total_completed_deliveries }}</h4>
+                    <p class="text-muted mb-0">Total Completed</p>
                 </div>
             </div>
         </div>
@@ -70,7 +69,7 @@
                         <i class="fas fa-star"></i>
                     </div>
                     <h4 class="fw-bold">4.8</h4>
-                    <p class="text-muted mb-0">रेटिंग<br>Rating</p>
+                    <p class="text-muted mb-0">Rating</p>
                 </div>
             </div>
         </div>
@@ -82,11 +81,11 @@
             <div class="card border-0 shadow-sm bg-gradient-warning">
                 <div class="card-body text-center py-4">
                     <h5 class="mb-3">
-                        <i class="fas fa-qrcode me-2"></i>तुरंत QR स्कैन करें Quick QR Scan
+                        <i class="fas fa-qrcode me-2"></i>Quick QR Scan
                     </h5>
-                    <p class="text-muted mb-3">पैकेज या डिलीवरी QR कोड स्कैन करें<br>Scan package or delivery QR codes</p>
+                    <p class="text-muted mb-3">Scan package or delivery QR codes</p>
                     <a href="{{ url_for('qr_scanner') }}" class="btn btn-dark btn-lg">
-                        <i class="fas fa-camera me-2"></i>स्कैनर खोलें Open Scanner
+                        <i class="fas fa-camera me-2"></i>Open Scanner
                     </a>
                 </div>
             </div>
@@ -99,7 +98,7 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-warning text-white">
                     <h5 class="mb-0">
-                        <i class="fas fa-list me-2"></i>असाइन किए गए ऑर्डर Assigned Orders
+                        <i class="fas fa-list me-2"></i>Assigned Orders
                         <span class="badge bg-white text-warning ms-2">{{ assigned_orders|length }}</span>
                     </h5>
                 </div>
@@ -110,12 +109,12 @@
                             <table class="table table-hover mb-0">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>ऑर्डर ID<br><small>Order ID</small></th>
-                                        <th>ग्राहक<br><small>Customer</small></th>
-                                        <th>विक्रेता<br><small>Vendor</small></th>
-                                        <th>स्थिति<br><small>Status</small></th>
-                                        <th>QR स्कैन<br><small>QR Scans</small></th>
-                                        <th>कार्य<br><small>Actions</small></th>
+                                        <th>Order ID</th>
+                                        <th>Customer</th>
+                                        <th>Vendor</th>
+                                        <th>Status</th>
+                                        <th>QR Scans</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -124,7 +123,7 @@
                                         <td>
                                             <strong class="text-primary">#TK{{ order.id }}</strong>
                                             {% if order.delivery_speed == 'express' %}
-                                                <br><span class="badge bg-danger small">तुरंत Express</span>
+                                                <br><span class="badge bg-danger small">Express</span>
                                             {% endif %}
                                         </td>
                                         <td>
@@ -156,21 +155,21 @@
                                                     <div class="progress-bar" role="progressbar" 
                                                          style="width: {{ (order.qr_scan_count / 3 * 100) }}%"></div>
                                                 </div>
-                                                <small>{{ order.qr_scan_count }}/3 स्कैन</small>
+                                                <small>{{ order.qr_scan_count }}/3 scans</small>
                                             </div>
                                         </td>
                                         <td>
                                             <div class="btn-group-vertical" role="group">
                                                 {% if order.status in ['accepted', 'dispatched', 'in_transit'] %}
                                                     <a href="{{ url_for('qr_scanner') }}" class="btn btn-sm btn-warning">
-                                                        <i class="fas fa-qrcode"></i> स्कैन Scan
+                                                        <i class="fas fa-qrcode"></i> Scan
                                                     </a>
                                                 {% elif order.status == 'out_for_delivery' %}
                                                     <button class="btn btn-sm btn-success" onclick="showCustomerLocation({{ order.id }})">
-                                                        <i class="fas fa-map-marker-alt"></i> पता Address
+                                                        <i class="fas fa-map-marker-alt"></i> Address
                                                     </button>
                                                     <a href="{{ url_for('qr_scanner') }}" class="btn btn-sm btn-danger">
-                                                        <i class="fas fa-qrcode"></i> डिलीवर Deliver
+                                                        <i class="fas fa-qrcode"></i> Deliver
                                                     </a>
                                                 {% endif %}
                                                 <button class="btn btn-sm btn-outline-primary" 
@@ -187,10 +186,8 @@
                     {% else %}
                         <div class="text-center py-5">
                             <i class="fas fa-truck fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">कोई असाइन ऑर्डर नहीं</h5>
-                            <p class="text-muted">No assigned orders</p>
-                            <p class="small text-muted">जब भी आपको नया ऑर्डर असाइन होगा, वह यहाँ दिखेगा<br>
-                            New orders will appear here when assigned to you</p>
+                            <h5 class="text-muted">No assigned orders</h5>
+                            <p class="text-muted">New orders will appear here when assigned to you</p>
                         </div>
                     {% endif %}
                 </div>
@@ -204,7 +201,7 @@
             <div class="card border-info">
                 <div class="card-header bg-info text-white">
                     <h6 class="mb-0">
-                        <i class="fas fa-info-circle me-2"></i>डिलीवरी निर्देश Delivery Instructions
+                        <i class="fas fa-info-circle me-2"></i>Delivery Instructions
                     </h6>
                 </div>
                 <div class="card-body">
@@ -212,22 +209,22 @@
                         <div class="col-md-4">
                             <div class="instruction-step">
                                 <div class="step-number bg-primary text-white">1</div>
-                                <h6>पैकेज QR स्कैन करें</h6>
-                                <p class="small text-muted">पहला स्कैन: डिस्पैच<br>दूसरा स्कैन: ट्रांजिट<br>तीसरा स्कैन: डिलीवरी के लिए</p>
+                                <h6>Scan Package QR</h6>
+                                <p class="small text-muted">First scan: Dispatched<br>Second scan: In Transit<br>Third scan: Out for Delivery</p>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="instruction-step">
                                 <div class="step-number bg-success text-white">2</div>
-                                <h6>ग्राहक के पास जाएं</h6>
-                                <p class="small text-muted">दिए गए पते पर जाकर ग्राहक से संपर्क करें</p>
+                                <h6>Go to Customer</h6>
+                                <p class="small text-muted">Navigate to the given address and contact customer</p>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="instruction-step">
                                 <div class="step-number bg-warning text-white">3</div>
-                                <h6>डिलीवरी QR स्कैन करें</h6>
-                                <p class="small text-muted">ग्राहक का डिलीवरी QR स्कैन करके पूरा करें</p>
+                                <h6>Scan Delivery QR</h6>
+                                <p class="small text-muted">Scan customer's delivery QR to complete the order</p>
                             </div>
                         </div>
                     </div>
@@ -242,7 +239,7 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-success text-white">
                     <h5 class="mb-0">
-                        <i class="fas fa-check-circle me-2"></i>हाल की पूर्ण डिलीवरी Recent Completed Deliveries
+                        <i class="fas fa-check-circle me-2"></i>Recent Completed Deliveries
                     </h5>
                 </div>
                 
@@ -252,11 +249,11 @@
                             <table class="table table-hover mb-0">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>ऑर्डर ID<br><small>Order ID</small></th>
-                                        <th>ग्राहक<br><small>Customer</small></th>
-                                        <th>विक्रेता<br><small>Vendor</small></th>
-                                        <th>पूर्ण समय<br><small>Completed</small></th>
-                                        <th>प्रकार<br><small>Type</small></th>
+                                        <th>Order ID</th>
+                                        <th>Customer</th>
+                                        <th>Vendor</th>
+                                        <th>Completed</th>
+                                        <th>Type</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -282,11 +279,11 @@
                                         </td>
                                         <td>
                                             {% if order.delivery_speed == 'express' %}
-                                                <span class="badge bg-danger">तुरंत Express</span>
+                                                <span class="badge bg-danger">Express</span>
                                             {% elif order.delivery_speed == 'standard' %}
-                                                <span class="badge bg-primary">सामान्य Standard</span>
+                                                <span class="badge bg-primary">Standard</span>
                                             {% else %}
-                                                <span class="badge bg-secondary">मितव्यी Economy</span>
+                                                <span class="badge bg-secondary">Economy</span>
                                             {% endif %}
                                         </td>
                                     </tr>
@@ -297,7 +294,7 @@
                     {% else %}
                         <div class="text-center py-4">
                             <i class="fas fa-check-circle fa-2x text-muted mb-3"></i>
-                            <p class="text-muted">अभी तक कोई पूर्ण डिलीवरी नहीं<br>No completed deliveries yet</p>
+                            <p class="text-muted">No completed deliveries yet</p>
                         </div>
                     {% endif %}
                 </div>
@@ -312,7 +309,7 @@
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
                 <h5 class="modal-title">
-                    <i class="fas fa-map-marker-alt me-2"></i>ग्राहक का पता Customer Address
+                    <i class="fas fa-map-marker-alt me-2"></i>Customer Address
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -328,7 +325,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">ऑर्डर विवरण Order Details</h5>
+                <h5 class="modal-title">Order Details</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="orderDetailsContent">
@@ -354,26 +351,26 @@ function showCustomerLocation(orderId) {
         <div class="customer-location">
             <div class="row g-3">
                 <div class="col-12">
-                    <h6><i class="fas fa-user me-2"></i>ग्राहक का नाम Customer Name</h6>
-                    <p class="fw-bold">${name || 'नाम उपलब्ध नहीं'}</p>
+                    <h6><i class="fas fa-user me-2"></i>Customer Name</h6>
+                    <p class="fw-bold">${name || 'Name not available'}</p>
                 </div>
                 <div class="col-12">
-                    <h6><i class="fas fa-phone me-2"></i>फोन नंबर Phone Number</h6>
-                    <p><a href="tel:${phone}" class="btn btn-outline-success btn-sm">${phone || 'नंबर उपलब्ध नहीं'}</a></p>
+                    <h6><i class="fas fa-phone me-2"></i>Phone Number</h6>
+                    <p><a href="tel:${phone}" class="btn btn-outline-success btn-sm">${phone || 'Number not available'}</a></p>
                 </div>
                 <div class="col-12">
-                    <h6><i class="fas fa-map-marker-alt me-2"></i>पूरा पता Full Address</h6>
+                    <h6><i class="fas fa-map-marker-alt me-2"></i>Full Address</h6>
                     <div class="bg-light p-3 rounded">
-                        <p class="mb-0">${addressParts.join(' ') || 'पता लोड हो रहा है...'}</p>
+                        <p class="mb-0">${addressParts.join(' ') || 'Address loading...'}</p>
                     </div>
                 </div>
                 <div class="col-12">
                     <div class="d-grid gap-2">
                         <button class="btn btn-primary" onclick="openMaps('${addressParts.join(' ')}')">
-                            <i class="fas fa-map me-2"></i>मैप में देखें Open in Maps
+                            <i class="fas fa-map me-2"></i>Open in Maps
                         </button>
                         <button class="btn btn-success" onclick="callCustomer('${phone}')">
-                            <i class="fas fa-phone me-2"></i>ग्राहक को कॉल करें Call Customer
+                            <i class="fas fa-phone me-2"></i>Call Customer
                         </button>
                     </div>
                 </div>
@@ -401,7 +398,7 @@ function viewOrderDetails(orderId) {
     const content = `
         <div class="text-center py-4">
             <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
-            <h5>ऑर्डर #TK${orderId} का विवरण</h5>
+            <h5>Order #TK${orderId} Details</h5>
             <p class="text-muted">Order details for #TK${orderId}</p>
         </div>
     `;

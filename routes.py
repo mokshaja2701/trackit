@@ -159,9 +159,13 @@ def delivery_dashboard():
     
     completed_orders = Order.query.filter_by(delivery_partner_id=current_user.id, status='delivered').order_by(Order.created_at.desc()).limit(10).all()
     
+    # Get total completed deliveries count for this delivery partner
+    total_completed_deliveries = Order.query.filter_by(delivery_partner_id=current_user.id, status='delivered').count()
+    
     return render_template('delivery_dashboard.html', 
                          assigned_orders=assigned_orders,
-                         completed_orders=completed_orders)
+                         completed_orders=completed_orders,
+                         total_completed_deliveries=total_completed_deliveries)
 
 @app.route('/create_order', methods=['GET', 'POST'])
 @login_required
@@ -296,7 +300,7 @@ def accept_order(order_id):
             'description': order.order_description
         }, room=f'delivery_{order.delivery_partner_id}')
     
-    return jsonify({'success': True, 'qr_code': qr_code})
+    return jsonify({'success': True, 'qr_code': qr_code, 'accepted': True})
 
 @app.route('/order/<int:order_id>/reject', methods=['POST'])
 @login_required
