@@ -58,6 +58,10 @@
                     </div>
                     <h4 class="fw-bold">{{ total_completed_deliveries }}</h4>
                     <p class="text-muted mb-0">Total Completed</p>
+                    <small class="text-success">
+                        {% set recent_count = completed_orders|selectattr('delivered_at', 'defined')|selectattr('delivered_at', 'ge', (moment().subtract(30, 'days')))|list|length %}
+                        {{ completed_orders|length }} in last 30 days
+                    </small>
                 </div>
             </div>
         </div>

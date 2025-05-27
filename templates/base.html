@@ -1,20 +1,19 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}TrackIt - Order Tracking{% endblock %}</title>
-    
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <!-- Font Awesome Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
+
     <!-- Custom CSS -->
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
-    
+
     {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -24,11 +23,11 @@
             <a class="navbar-brand fw-bold text-primary" href="{{ url_for('index') }}">
                 <i class="fas fa-truck me-2"></i>TrackIt
             </a>
-            
+
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            
+
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     {% if current_user.is_authenticated %}
@@ -63,7 +62,7 @@
                         {% endif %}
                     {% endif %}
                 </ul>
-                
+
                 <ul class="navbar-nav">
                     {% if current_user.is_authenticated %}
                         <li class="nav-item dropdown">
@@ -121,15 +120,148 @@
         </div>
     </footer>
 
-    <!-- Bootstrap 5 JS -->
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Socket.IO -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-    
-    <!-- Custom JavaScript -->
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    
+
+    <!-- Socket.IO for real-time updates -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+    <!-- Real-time WebSocket functionality -->
+    <script>
+        // Initialize WebSocket connection
+        let socket = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Socket.IO connection
+            socket = io();
+            window.socket = socket;
+
+            socket.on('connect', function() {
+                console.log('Connected to server');
+                // Join user-specific room for real-time updates
+                socket.emit('join_room', {});
+            });
+
+            socket.on('disconnect', function() {
+                console.log('Disconnected from server');
+            });
+
+            // Handle real-time order status updates
+            socket.on('order_status_update', function(data) {
+                console.log('Real-time order update:', data);
+                handleOrderStatusUpdate(data);
+            });
+
+            // Handle real-time QR scan updates
+            socket.on('qr_scan_update', function(data) {
+                console.log('Real-time QR scan update:', data);
+                handleQRScanUpdate(data);
+            });
+
+            // Handle global order updates
+            socket.on('global_order_update', function(data) {
+                console.log('Global order update:', data);
+                updateGlobalOrderStatus(data);
+            });
+
+            // Handle connection errors
+            socket.on('error', function(error) {
+                console.error('WebSocket error:', error);
+                showAlert('Connection error occurred', 'warning');
+            });
+        });
+
+        function handleOrderStatusUpdate(data) {
+            // Update order status in real-time
+            const orderElement = document.querySelector(`[data-order-id="${data.order_id}"]`);
+            if (orderElement) {
+                const statusElement = orderElement.querySelector('.order-status');
+                if (statusElement) {
+                    statusElement.textContent = data.status.toUpperCase();
+                    statusElement.className = `badge order-status ${getStatusClass(data.status)}`;
+                }
+
+                // Update timestamp
+                const timestampElement = orderElement.querySelector('.order-timestamp');
+                if (timestampElement) {
+                    timestampElement.textContent = data.timestamp;
+                }
+
+                // Show notification
+                showAlert(`Order #TK${data.order_id} status updated to ${data.status}`, 'success');
+
+                // Add visual feedback
+                orderElement.classList.add('order-updated');
+                setTimeout(() => {
+                    orderElement.classList.remove('order-updated');
+                }, 2000);
+            }
+        }
+
+        function handleQRScanUpdate(data) {
+            // Handle QR scan notifications
+            showAlert(`QR code scanned for Order #TK${data.order_id} by ${data.scanned_by}`, 'info');
+        }
+
+        function updateGlobalOrderStatus(data) {
+            // Update any global order displays
+            const globalElements = document.querySelectorAll(`[data-global-order-id="${data.order_id}"]`);
+            globalElements.forEach(element => {
+                const statusSpan = element.querySelector('.global-status');
+                if (statusSpan) {
+                    statusSpan.textContent = data.status.toUpperCase();
+                    statusSpan.className = `badge global-status ${getStatusClass(data.status)}`;
+                }
+            });
+        }
+
+        function getStatusClass(status) {
+            const statusClasses = {
+                'pending': 'bg-warning',
+                'accepted': 'bg-info',
+                'dispatched': 'bg-primary',
+                'in_transit': 'bg-primary',
+                'out_for_delivery': 'bg-warning',
+                'delivered': 'bg-success',
+                'rejected': 'bg-danger'
+            };
+            return statusClasses[status] || 'bg-secondary';
+        }
+
+        function showAlert(message, type = 'info') {
+            // Create and show alert notification
+            const alertContainer = document.getElementById('alert-container') || createAlertContainer();
+
+            const alertElement = document.createElement('div');
+            alertElement.className = `alert alert-${type} alert-dismissible fade show`;
+            alertElement.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+
+            alertContainer.appendChild(alertElement);
+
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (alertElement.parentNode) {
+                    alertElement.remove();
+                }
+            }, 5000);
+        }
+
+        function createAlertContainer() {
+            const container = document.createElement('div');
+            container.id = 'alert-container';
+            container.style.position = 'fixed';
+            container.style.top = '20px';
+            container.style.right = '20px';
+            container.style.zIndex = '9999';
+            container.style.maxWidth = '400px';
+            document.body.appendChild(container);
+            return container;
+        }
+    </script>
+
     {% block extra_scripts %}{% endblock %}
 </body>
 </html>

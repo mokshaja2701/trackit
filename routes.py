@@ -9,7 +9,7 @@ import random
 
 from app import app, db, socketio
 from models import User, Vendor, Order, QRScan, OrderHistory
-from qr_handler import generate_package_qr, generate_delivery_qr, validate_qr_code
+from qr_handler import generate_package_qr, generate_customer_delivery_qr, validate_qr_code, process_image_for_qr
 from ai_predictions import get_ai_predictions
 from indian_data import get_available_vendors
 
@@ -336,6 +336,25 @@ def qr_scanner():
     
     return render_template('qr_scanner.html')
 
+@app.route('/process_qr_image', methods=['POST'])
+@login_required
+def process_qr_image():
+    """Process camera image for real QR code detection using OpenCV"""
+    try:
+        data = request.get_json()
+        image_data = data.get('image_data')
+        
+        if not image_data:
+            return jsonify({'qr_detected': False, 'error': 'No image data provided'})
+        
+        # Process image for QR detection
+        result = process_image_for_qr(image_data)
+        return jsonify(result)
+        
+    except Exception as e:
+        logging.error(f"Error processing QR image: {str(e)}")
+        return jsonify({'qr_detected': False, 'error': 'Image processing failed'})
+
 @app.route('/scan_qr', methods=['POST'])
 @login_required
 def scan_qr():
@@ -350,26 +369,35 @@ def scan_qr():
     if result['success']:
         order = result['order']
         
-        # Emit WebSocket event for real-time update
-        socketio.emit('order_status_update', {
+        # Emit WebSocket event for real-time update to all relevant parties
+        update_data = {
             'order_id': order.id,
             'status': order.status,
             'timestamp': datetime.now(IST).strftime("%d/%m/%Y %I:%M %p"),
-            'delivery_qr_code': order.delivery_qr_code if order.delivery_qr_code else None
-        }, room=f'customer_{order.customer_id}')
+            'scanned_by': current_user.full_name,
+            'scan_type': result.get('scan_type', 'unknown')
+        }
         
-        socketio.emit('order_status_update', {
+        # Add delivery QR if generated
+        if result.get('delivery_qr_generated'):
+            update_data['delivery_qr_code'] = order.delivery_qr_code
+        
+        # Broadcast to customer
+        socketio.emit('order_status_update', update_data, room=f'customer_{order.customer_id}')
+        
+        # Broadcast to vendor
+        socketio.emit('order_status_update', update_data, room=f'vendor_{order.vendor_id}')
+        
+        # Broadcast to delivery partner
+        if order.delivery_partner_id:
+            socketio.emit('order_status_update', update_data, room=f'delivery_{order.delivery_partner_id}')
+        
+        # Broadcast to all connected clients for general updates
+        socketio.emit('global_order_update', {
             'order_id': order.id,
             'status': order.status,
-            'timestamp': datetime.now(IST).strftime("%d/%m/%Y %I:%M %p")
-        }, room=f'vendor_{order.vendor_id}')
-        
-        if order.delivery_partner_id:
-            socketio.emit('order_status_update', {
-                'order_id': order.id,
-                'status': order.status,
-                'timestamp': datetime.now(IST).strftime("%d/%m/%Y %I:%M %p")
-            }, room=f'delivery_{order.delivery_partner_id}')
+            'timestamp': update_data['timestamp']
+        }, broadcast=True)
     
     return jsonify(result)
 
