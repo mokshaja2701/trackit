@@ -1,6 +1,7 @@
+
 from flask import render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
-from flask_socketio import emit
+from flask_socketio import emit, join_room, leave_room
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import pytz
@@ -37,7 +38,7 @@ def login():
         
         if user and user.check_password(password):
             login_user(user)
-            flash(f'स्वागत है! Welcome {user.full_name}!', 'success')
+            flash(f'Welcome {user.full_name}!', 'success')
             
             next_page = request.args.get('next')
             if next_page:
@@ -50,7 +51,7 @@ def login():
             elif user.role == 'delivery_partner':
                 return redirect(url_for('delivery_dashboard'))
         else:
-            flash('गलत उपयोगकर्ता नाम या पासवर्ड। Invalid username or password.', 'error')
+            flash('Invalid username or password.', 'error')
     
     return render_template('login.html')
 
@@ -67,11 +68,11 @@ def register():
         
         # Check if user exists
         if User.query.filter_by(username=username).first():
-            flash('उपयोगकर्ता नाम पहले से मौजूद है। Username already exists.', 'error')
+            flash('Username already exists.', 'error')
             return render_template('register.html')
         
         if User.query.filter_by(email=email).first():
-            flash('ईमेल पहले से पंजीकृत है। Email already registered.', 'error')
+            flash('Email already registered.', 'error')
             return render_template('register.html')
         
         # Create new user
@@ -90,8 +91,8 @@ def register():
         
         # If vendor, create vendor profile
         if role == 'vendor':
-            business_name = request.form['business_name']
-            business_type = request.form['business_type']
+            business_name = request.form.get('business_name', '')
+            business_type = request.form.get('business_type', '')
             
             vendor = Vendor(
                 user_id=user.id,
@@ -101,7 +102,7 @@ def register():
             db.session.add(vendor)
             db.session.commit()
         
-        flash('पंजीकरण सफल! Registration successful! Please login.', 'success')
+        flash('Registration successful! Please login.', 'success')
         return redirect(url_for('login'))
     
     return render_template('register.html')
@@ -110,14 +111,14 @@ def register():
 @login_required
 def logout():
     logout_user()
-    flash('सफलतापूर्वक लॉग आउट। Successfully logged out.', 'info')
+    flash('Successfully logged out.', 'info')
     return redirect(url_for('index'))
 
 @app.route('/customer_dashboard')
 @login_required
 def customer_dashboard():
     if current_user.role != 'customer':
-        flash('अनधिकृत पहुंच। Unauthorized access.', 'error')
+        flash('Unauthorized access.', 'error')
         return redirect(url_for('index'))
     
     orders = Order.query.filter_by(customer_id=current_user.id).order_by(Order.created_at.desc()).all()
@@ -127,7 +128,7 @@ def customer_dashboard():
 @login_required
 def vendor_dashboard():
     if current_user.role != 'vendor':
-        flash('अनधिकृत पहुंच। Unauthorized access.', 'error')
+        flash('Unauthorized access.', 'error')
         return redirect(url_for('index'))
     
     pending_orders = Order.query.filter_by(vendor_id=current_user.id, status='pending').all()
@@ -149,7 +150,7 @@ def vendor_dashboard():
 @login_required
 def delivery_dashboard():
     if current_user.role != 'delivery_partner':
-        flash('अनधिकृत पहुंच। Unauthorized access.', 'error')
+        flash('Unauthorized access.', 'error')
         return redirect(url_for('index'))
     
     assigned_orders = Order.query.filter_by(delivery_partner_id=current_user.id).filter(
@@ -166,7 +167,7 @@ def delivery_dashboard():
 @login_required
 def create_order():
     if current_user.role != 'customer':
-        flash('अनधिकृत पहुंच। Unauthorized access.', 'error')
+        flash('Unauthorized access.', 'error')
         return redirect(url_for('index'))
     
     if request.method == 'POST':
@@ -198,14 +199,14 @@ def create_order():
             'delivery_speed': delivery_speed
         }, room=f'vendor_{vendor_id}')
         
-        flash('आर्डर सफलतापूर्वक दिया गया! Order placed successfully!', 'success')
+        flash('Order placed successfully!', 'success')
         return redirect(url_for('customer_dashboard'))
     
     vendors = get_available_vendors()
     
     # Get AI predictions if eligible
     predictions = None
-    if current_user.can_use_ai_predictions():
+    if hasattr(current_user, 'can_use_ai_predictions') and current_user.can_use_ai_predictions():
         predictions = get_ai_predictions(current_user.id)
     
     return render_template('create_order.html', vendors=vendors, predictions=predictions)
@@ -285,7 +286,7 @@ def reject_order(order_id):
 @login_required
 def qr_scanner():
     if current_user.role not in ['delivery_partner', 'customer']:
-        flash('अनधिकृत पहुंच। Unauthorized access.', 'error')
+        flash('Unauthorized access.', 'error')
         return redirect(url_for('index'))
     
     return render_template('qr_scanner.html')
