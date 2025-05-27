@@ -6,6 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import pytz
 import random
+import logging
 
 from app import app, db, socketio
 from models import User, Vendor, Order, QRScan, OrderHistory
