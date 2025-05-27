@@ -19,7 +19,7 @@ def handle_connect():
         emit('status', {'msg': 'Connected anonymously'})
 
 @socketio.on('disconnect')
-def handle_disconnect():
+def handle_disconnect(auth):
     """Handle client disconnection"""
     if current_user.is_authenticated:
         logger.info(f'User {current_user.username} disconnected')

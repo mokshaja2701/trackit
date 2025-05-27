@@ -22,16 +22,16 @@ def index():
     try:
         if current_user.is_authenticated:
             if current_user.role == 'customer':
-                return redirect(url_for('customer_dashboard'))
+                return redirect(url_for('customer_dashboard'), code=302)
             elif current_user.role == 'vendor':
-                return redirect(url_for('vendor_dashboard'))
+                return redirect(url_for('vendor_dashboard'), code=302)
             elif current_user.role == 'delivery_partner':
-                return redirect(url_for('delivery_dashboard'))
+                return redirect(url_for('delivery_dashboard'), code=302)
         
-        return redirect(url_for('login'))
+        return redirect(url_for('login'), code=302)
     except Exception as e:
         logging.error(f"Error in index route: {str(e)}")
-        return redirect(url_for('login'))
+        return redirect(url_for('login'), code=302)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -47,14 +47,14 @@ def login():
             
             next_page = request.args.get('next')
             if next_page:
-                return redirect(next_page)
+                return redirect(next_page, code=302)
             
             if user.role == 'customer':
-                return redirect(url_for('customer_dashboard'))
+                return redirect(url_for('customer_dashboard'), code=302)
             elif user.role == 'vendor':
-                return redirect(url_for('vendor_dashboard'))
+                return redirect(url_for('vendor_dashboard'), code=302)
             elif user.role == 'delivery_partner':
-                return redirect(url_for('delivery_dashboard'))
+                return redirect(url_for('delivery_dashboard'), code=302)
         else:
             flash('Invalid username or password.', 'error')
     
@@ -118,11 +118,11 @@ def logout():
     try:
         logout_user()
         flash('Successfully logged out.', 'info')
-        return redirect(url_for('login'))
+        return redirect(url_for('login'), code=302)
     except Exception as e:
         logging.error(f"Error during logout: {str(e)}")
         flash('Error during logout. Please try again.', 'error')
-        return redirect(url_for('index'))
+        return redirect(url_for('login'), code=302)
 
 @app.route('/customer_dashboard')
 @login_required
