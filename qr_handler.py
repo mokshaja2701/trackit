@@ -16,16 +16,15 @@ IST = pytz.timezone('Asia/Kolkata')
 def generate_package_qr(order_id):
     """Generate QR code for package tracking"""
     try:
-        # Create unique QR data with order ID and timestamp
-        timestamp = datetime.now(IST).isoformat()
-        qr_data = f"TRACKIT_PACKAGE_{order_id}_{timestamp}_{uuid.uuid4().hex[:8]}"
+        # Create simpler, more reliable QR data
+        qr_data = f"TRACKIT_PACKAGE_{order_id}_{uuid.uuid4().hex[:8]}"
         
-        # Generate QR code
+        # Generate QR code with higher error correction
         qr = qrcode.QRCode(
             version=1,
-            error_correction=qrcode.constants.ERROR_CORRECT_L,
-            box_size=10,
-            border=4,
+            error_correction=qrcode.constants.ERROR_CORRECT_M,
+            box_size=8,
+            border=2,
         )
         qr.add_data(qr_data)
         qr.make(fit=True)
@@ -33,12 +32,7 @@ def generate_package_qr(order_id):
         # Create QR code image
         img = qr.make_image(fill_color="black", back_color="white")
         
-        # Convert to base64 string for storage
-        buffer = BytesIO()
-        img.save(buffer, format='PNG')
-        img_str = base64.b64encode(buffer.getvalue()).decode()
-        
-        logging.info(f"Generated package QR code for order {order_id}")
+        logging.info(f"Generated package QR code for order {order_id}: {qr_data}")
         return qr_data
         
     except Exception as e:
@@ -48,16 +42,15 @@ def generate_package_qr(order_id):
 def generate_delivery_qr(order_id):
     """Generate QR code for final delivery confirmation"""
     try:
-        # Create unique delivery QR data
-        timestamp = datetime.now(IST).isoformat()
-        qr_data = f"TRACKIT_DELIVERY_{order_id}_{timestamp}_{uuid.uuid4().hex[:8]}"
+        # Create simpler delivery QR data
+        qr_data = f"TRACKIT_DELIVERY_{order_id}_{uuid.uuid4().hex[:8]}"
         
-        # Generate QR code
+        # Generate QR code with higher error correction
         qr = qrcode.QRCode(
             version=1,
-            error_correction=qrcode.constants.ERROR_CORRECT_L,
-            box_size=10,
-            border=4,
+            error_correction=qrcode.constants.ERROR_CORRECT_M,
+            box_size=8,
+            border=2,
         )
         qr.add_data(qr_data)
         qr.make(fit=True)
@@ -65,12 +58,7 @@ def generate_delivery_qr(order_id):
         # Create QR code image
         img = qr.make_image(fill_color="black", back_color="white")
         
-        # Convert to base64 string
-        buffer = BytesIO()
-        img.save(buffer, format='PNG')
-        img_str = base64.b64encode(buffer.getvalue()).decode()
-        
-        logging.info(f"Generated delivery QR code for order {order_id}")
+        logging.info(f"Generated delivery QR code for order {order_id}: {qr_data}")
         return qr_data
         
     except Exception as e:
@@ -82,9 +70,9 @@ def get_qr_image_data(qr_data):
     try:
         qr = qrcode.QRCode(
             version=1,
-            error_correction=qrcode.constants.ERROR_CORRECT_L,
-            box_size=10,
-            border=4,
+            error_correction=qrcode.constants.ERROR_CORRECT_M,
+            box_size=8,
+            border=2,
         )
         qr.add_data(qr_data)
         qr.make(fit=True)
@@ -106,11 +94,11 @@ def validate_qr_code(qr_data, scanned_by_user_id):
     try:
         # Parse QR data
         if not qr_data.startswith('TRACKIT_'):
-            return {'success': False, 'error': 'अमान्य QR कोड। Invalid QR code format.'}
+            return {'success': False, 'error': 'Invalid QR code format.'}
         
         parts = qr_data.split('_')
-        if len(parts) < 4:
-            return {'success': False, 'error': 'अमान्य QR कोड। Invalid QR code format.'}
+        if len(parts) < 3:
+            return {'success': False, 'error': 'Invalid QR code format.'}
         
         qr_type = parts[1]  # PACKAGE or DELIVERY
         order_id = int(parts[2])
@@ -118,7 +106,7 @@ def validate_qr_code(qr_data, scanned_by_user_id):
         # Get order
         order = Order.query.get(order_id)
         if not order:
-            return {'success': False, 'error': 'आर्डर नहीं मिला। Order not found.'}
+            return {'success': False, 'error': 'Order not found.'}
         
         # Validate QR type and process accordingly
         if qr_type == 'PACKAGE':
@@ -126,11 +114,11 @@ def validate_qr_code(qr_data, scanned_by_user_id):
         elif qr_type == 'DELIVERY':
             return process_delivery_qr_scan(order, qr_data, scanned_by_user_id)
         else:
-            return {'success': False, 'error': 'अमान्य QR प्रकार। Invalid QR type.'}
+            return {'success': False, 'error': 'Invalid QR type.'}
             
     except Exception as e:
         logging.error(f"Error validating QR code: {str(e)}")
-        return {'success': False, 'error': 'QR कोड प्रसंस्करण में त्रुटि। Error processing QR code.'}
+        return {'success': False, 'error': 'Error processing QR code.'}
 
 def process_package_qr_scan(order, qr_data, scanned_by_user_id):
     """Process package QR code scan by delivery partner"""

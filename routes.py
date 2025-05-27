@@ -26,7 +26,7 @@ def index():
         elif current_user.role == 'delivery_partner':
             return redirect(url_for('delivery_dashboard'))
     
-    return render_template('index.html')
+    return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

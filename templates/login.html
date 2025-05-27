@@ -1,145 +1,11 @@
 {% extends "base.html" %}
+```
 
-{% block title %}लॉगिन Login - TrackIt{% endblock %}
-
-{% block content %}
-<div class="container">
-    <div class="row justify-content-center min-vh-100 align-items-center">
-        <div class="col-md-6 col-lg-5">
-            <div class="card shadow-lg border-0">
-                <div class="card-header bg-primary text-white text-center py-4">
-                    <h3 class="mb-0">
-                        <i class="fas fa-sign-in-alt me-2"></i>
-                        लॉगिन करें<br>
-                        <small class="fs-6">Login to TrackIt</small>
-                    </h3>
-                </div>
-                
-                <div class="card-body p-5">
-                    <form method="POST">
-                        <div class="mb-4">
-                            <label for="username" class="form-label fw-semibold">
-                                <i class="fas fa-user me-2"></i>उपयोगकर्ता नाम Username
-                            </label>
-                            <input type="text" class="form-control form-control-lg" id="username" name="username" required>
-                            <div class="form-text">आपका यूनीक यूजरनाम दर्ज करें</div>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label for="password" class="form-label fw-semibold">
-                                <i class="fas fa-lock me-2"></i>पासवर्ड Password
-                            </label>
-                            <div class="input-group">
-                                <input type="password" class="form-control form-control-lg" id="password" name="password" required>
-                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()">
-                                    <i class="fas fa-eye" id="passwordIcon"></i>
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="d-grid mb-4">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-sign-in-alt me-2"></i>लॉगिन करें Login
-                            </button>
-                        </div>
-                    </form>
-                    
-                    <div class="text-center">
-                        <p class="text-muted mb-3">खाता नहीं है? Don't have an account?</p>
-                        <a href="{{ url_for('register') }}" class="btn btn-outline-primary">
-                            <i class="fas fa-user-plus me-2"></i>पंजीकरण करें Register
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Demo Credentials -->
-            <div class="card mt-4 border-info">
-                <div class="card-header bg-info text-white">
-                    <h6 class="mb-0">
-                        <i class="fas fa-info-circle me-2"></i>डेमो क्रेडेंशियल Demo Credentials
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3 text-sm">
-                        <div class="col-md-4">
-                            <strong>ग्राहक Customer:</strong><br>
-                            <code>aarav.mehta</code><br>
-                            <code>password123</code>
-                        </div>
-                        <div class="col-md-4">
-                            <strong>विक्रेता Vendor:</strong><br>
-                            <code>shree.ganesh</code><br>
-                            <code>vendor123</code>
-                        </div>
-                        <div class="col-md-4">
-                            <strong>डिलीवरी Delivery:</strong><br>
-                            <code>rahul.delivery</code><br>
-                            <code>delivery123</code>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block extra_scripts %}
-<script>
-function togglePassword() {
-    const passwordField = document.getElementById('password');
-    const passwordIcon = document.getElementById('passwordIcon');
-    
-    if (passwordField.type === 'password') {
-        passwordField.type = 'text';
-        passwordIcon.classList.remove('fa-eye');
-        passwordIcon.classList.add('fa-eye-slash');
-    } else {
-        passwordField.type = 'password';
-        passwordIcon.classList.remove('fa-eye-slash');
-        passwordIcon.classList.add('fa-eye');
-    }
-}
-
-// Auto-fill demo credentials
-function fillCredentials(username, password) {
-    document.getElementById('username').value = username;
-    document.getElementById('password').value = password;
-}
-
-// Add click handlers to demo credentials
-document.addEventListener('DOMContentLoaded', function() {
-    const demoCard = document.querySelector('.card.border-info .card-body');
-    
-    demoCard.addEventListener('click', function(e) {
-        const target = e.target.closest('.col-md-4');
-        if (target) {
-            const codes = target.querySelectorAll('code');
-            if (codes.length >= 2) {
-                fillCredentials(codes[0].textContent, codes[1].textContent);
-            }
-        }
-    });
-    
-    // Add hover effect to demo sections
-    const demoCols = document.querySelectorAll('.card.border-info .col-md-4');
-    demoCols.forEach(col => {
-        col.style.cursor = 'pointer';
-        col.addEventListener('mouseenter', function() {
-            this.style.backgroundColor = '#f8f9fa';
-        });
-        col.addEventListener('mouseleave', function() {
-            this.style.backgroundColor = '';
-        });
-    });
-});
-</script>
-{% endblock %}
-{% extends "base.html" %}
-
+```
 {% block title %}Login - TrackIt{% endblock %}
+```
 
+```
 {% block content %}
 <div class="container">
     <div class="row justify-content-center align-items-center min-vh-100">
@@ -150,29 +16,57 @@ document.addEventListener('DOMContentLoaded', function() {
                         <h3 class="fw-bold text-primary">Login to TrackIt</h3>
                         <p class="text-muted">Access your order tracking dashboard</p>
                     </div>
-                    
+
                     <form method="POST" class="needs-validation" novalidate>
                         <div class="mb-3">
                             <label for="username" class="form-label">Username</label>
                             <input type="text" class="form-control" id="username" name="username" required>
                             <div class="invalid-feedback">Please enter your username.</div>
                         </div>
-                        
+
                         <div class="mb-3">
                             <label for="password" class="form-label">Password</label>
                             <input type="password" class="form-control" id="password" name="password" required>
                             <div class="invalid-feedback">Please enter your password.</div>
                         </div>
-                        
+
                         <button type="submit" class="btn btn-primary w-100 mb-3">
                             <i class="fas fa-sign-in-alt me-1"></i> Login
                         </button>
                     </form>
-                    
+
                     <div class="text-center">
                         <p class="text-muted mb-0">Don't have an account? 
                             <a href="{{ url_for('register') }}" class="text-primary text-decoration-none">Register here</a>
                         </p>
+                    </div>
+
+                    <!-- Demo Credentials -->
+                    <div class="card mt-4 border-info">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-info-circle me-2"></i>Demo Credentials
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3 text-sm">
+                                <div class="col-md-4">
+                                    <strong>Customer:</strong><br>
+                                    <code>aarav.mehta</code><br>
+                                    <code>password123</code>
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>Vendor:</strong><br>
+                                    <code>shree.ganesh</code><br>
+                                    <code>vendor123</code>
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>Delivery:</strong><br>
+                                    <code>rahul.delivery</code><br>
+                                    <code>delivery123</code>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -199,5 +93,42 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }, false);
 })();
+
+// Auto-fill demo credentials
+function fillCredentials(username, password) {
+    document.getElementById('username').value = username;
+    document.getElementById('password').value = password;
+}
+
+// Add click handlers to demo credentials
+document.addEventListener('DOMContentLoaded', function() {
+    const demoCard = document.querySelector('.card.border-info .card-body');
+
+    demoCard.addEventListener('click', function(e) {
+        const target = e.target.closest('.col-md-4');
+        if (target) {
+            const codes = target.querySelectorAll('code');
+            if (codes.length >= 2) {
+                fillCredentials(codes[0].textContent, codes[1].textContent);
+            }
+        }
+    });
+
+    // Add hover effect to demo sections
+    const demoCols = document.querySelectorAll('.card.border-info .col-md-4');
+    demoCols.forEach(col => {
+        col.style.cursor = 'pointer';
+        col.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#f8f9fa';
+        });
+        col.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
+        });
+    });
+});
 </script>
 {% endblock %}
+```
+
+```
+</replit_final_file>
