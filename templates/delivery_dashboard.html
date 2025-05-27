@@ -2,6 +2,18 @@
 
 {% block title %}Delivery Dashboard - TrackIt{% endblock %}
 
+{% block extra_head %}
+<style>
+.order-card {
+    transition: all 0.3s ease;
+}
+.order-updated {
+    border-left: 4px solid #28a745;
+    background-color: #f8fff9;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container py-4">
     <!-- Header -->

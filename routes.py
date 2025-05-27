@@ -19,15 +19,19 @@ IST = pytz.timezone('Asia/Kolkata')
 
 @app.route('/')
 def index():
-    if current_user.is_authenticated:
-        if current_user.role == 'customer':
-            return redirect(url_for('customer_dashboard'))
-        elif current_user.role == 'vendor':
-            return redirect(url_for('vendor_dashboard'))
-        elif current_user.role == 'delivery_partner':
-            return redirect(url_for('delivery_dashboard'))
-    
-    return redirect(url_for('login'))
+    try:
+        if current_user.is_authenticated:
+            if current_user.role == 'customer':
+                return redirect(url_for('customer_dashboard'))
+            elif current_user.role == 'vendor':
+                return redirect(url_for('vendor_dashboard'))
+            elif current_user.role == 'delivery_partner':
+                return redirect(url_for('delivery_dashboard'))
+        
+        return redirect(url_for('login'))
+    except Exception as e:
+        logging.error(f"Error in index route: {str(e)}")
+        return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -111,9 +115,14 @@ def register():
 @app.route('/logout')
 @login_required
 def logout():
-    logout_user()
-    flash('Successfully logged out.', 'info')
-    return redirect(url_for('index'))
+    try:
+        logout_user()
+        flash('Successfully logged out.', 'info')
+        return redirect(url_for('login'))
+    except Exception as e:
+        logging.error(f"Error during logout: {str(e)}")
+        flash('Error during logout. Please try again.', 'error')
+        return redirect(url_for('index'))
 
 @app.route('/customer_dashboard')
 @login_required

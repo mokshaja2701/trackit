@@ -9,7 +9,7 @@ deploymentTarget = "autoscale"
 run = ["gunicorn", "--bind", "0.0.0.0:5000", "main:app"]
 
 [workflows]
-runButton = "Project"
+runButton = "Run Flask App"
 
 [[workflows.workflow]]
 name = "Project"
@@ -79,6 +79,15 @@ except ImportError:
 
 print('All required dependencies are available!')
 \""""
+
+[[workflows.workflow]]
+name = "Run Flask App"
+author = 43168797
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python main.py"
 
 [[ports]]
 localPort = 5000
