@@ -113,16 +113,17 @@ def initialize_mock_data():
     User.query.delete()
     db.session.commit()
 
-    # Create customers
+    # Create exactly 20 customers
     customers = []
-    for i, customer_data in enumerate(INDIAN_CUSTOMERS):
+    for i, customer_data in enumerate(INDIAN_CUSTOMERS[:20]):  # Ensure we get exactly 20
         user = User(
             username=customer_data['username'],
             email=customer_data['email'],
             full_name=customer_data['full_name'],
             phone=customer_data['phone'],
             address=customer_data['address'],
-            role='customer'
+            role='customer',
+            successful_orders=10  # Each customer will have exactly 10 successful orders
         )
         user.set_password('password123')
         customers.append(user)
@@ -143,7 +144,7 @@ def initialize_mock_data():
         vendors.append(user)
         db.session.add(user)
 
-    # Create delivery partners with extensive history
+    # Create exactly 5 delivery partners with 20+ successful orders each
     delivery_partners = []
     for i, delivery_data in enumerate(INDIAN_DELIVERY_PARTNERS):
         user = User(
@@ -152,7 +153,8 @@ def initialize_mock_data():
             full_name=delivery_data['full_name'],
             phone=delivery_data['phone'],
             address=delivery_data['address'],
-            role='delivery_partner'
+            role='delivery_partner',
+            successful_orders=25  # Each delivery partner has 25 successful orders
         )
         user.set_password('delivery123')
         delivery_partners.append(user)
@@ -173,12 +175,12 @@ def initialize_mock_data():
     
     db.session.commit()
 
-    print("Creating extensive order history for delivery partners...")
+    print("Creating exactly 10 successful orders per customer for SVM training...")
 
-    # Create comprehensive order history with focus on delivery partners
+    # Create exactly 10 completed orders for each customer (200 total orders)
     for customer in customers:
-        # Create 15 completed orders for each customer (300 total orders)
-        for order_num in range(15):
+        # Create exactly 10 completed orders for each customer
+        for order_num in range(10):
             vendor = random.choice(vendors)
             delivery_partner = random.choice(delivery_partners)
 
@@ -204,13 +206,13 @@ def initialize_mock_data():
                 delivered_at=order_date + timedelta(hours=random.randint(6, 12))
             )
 
-            # Generate QR codes
+            db.session.add(order)
+            db.session.flush()  # Flush to get the order ID
+            
+            # Generate QR codes after getting the order ID
             from qr_handler import generate_package_qr, generate_customer_delivery_qr
             order.package_qr_code = generate_package_qr(order.id)
             order.delivery_qr_code = generate_customer_delivery_qr(order.id, customer.id)
-
-            db.session.add(order)
-            db.session.flush()  # Flush to get the order ID
 
             # Create QR scan records for completed orders
             scan_timestamps = [

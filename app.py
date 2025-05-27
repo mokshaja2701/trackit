@@ -55,10 +55,9 @@ def create_app():
         db.create_all()
         logging.info("Database tables created successfully")
         
-        # Initialize mock data (temporarily disabled to get app running)
-        # from indian_data import initialize_mock_data
-        # initialize_mock_data()
-        logging.info("App started successfully - mock data initialization skipped")
+        # Initialize mock data with exact specifications
+        from indian_data import initialize_mock_data
+        initialize_mock_data()
     
     return app
 
