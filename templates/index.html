@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}TrackIt - ट्रैकइट | Real-time Order Tracking{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container">
+        <div class="row align-items-center min-vh-100">
+            <div class="col-lg-6">
+                <div class="hero-content">
+                    <h1 class="display-4 fw-bold mb-4">
+                        TrackIt <span class="text-primary">ट्रैकइट</span>
+                    </h1>
+                    <p class="lead mb-4">
+                        भारत के लिए बनाया गया रियल-टाइम ऑर्डर ट्रैकिंग सिस्टम<br>
+                        <em>Real-time order tracking system built for India</em>
+                    </p>
+                    
+                    <div class="features-list mb-5">
+                        <div class="feature-item">
+                            <i class="fas fa-qrcode text-primary me-3"></i>
+                            <span>QR कोड आधारित ट्रैकिंग | QR Code-based Tracking</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-brain text-success me-3"></i>
+                            <span>AI पावर्ड प्रिडिक्शन | AI-powered Predictions</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-broadcast-tower text-warning me-3"></i>
+                            <span>वास्तविक समय अपडेट | Real-time Updates</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-map-marker-alt text-danger me-3"></i>
+                            <span>भारतीय स्थानीयकरण | Indian Localization</span>
+                        </div>
+                    </div>
+                    
+                    {% if not current_user.is_authenticated %}
+                        <div class="cta-buttons">
+                            <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg me-3">
+                                <i class="fas fa-sign-in-alt me-2"></i>लॉगिन करें Login
+                            </a>
+                            <a href="{{ url_for('register') }}" class="btn btn-outline-primary btn-lg">
+                                <i class="fas fa-user-plus me-2"></i>पंजीकरण करें Register
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="welcome-section">
+                            <div class="alert alert-success">
+                                <h5 class="alert-heading">
+                                    <i class="fas fa-user-check me-2"></i>स्वागत है! Welcome, {{ current_user.full_name }}!
+                                </h5>
+                                <p class="mb-2">आपकी भूमिका: <strong>{{ current_user.role.title() }}</strong></p>
+                                <hr>
+                                <div class="d-flex gap-2">
+                                    {% if current_user.role == 'customer' %}
+                                        <a href="{{ url_for('customer_dashboard') }}" class="btn btn-success">
+                                            <i class="fas fa-tachometer-alt me-1"></i>डैशबोर्ड Dashboard
+                                        </a>
+                                        <a href="{{ url_for('create_order') }}" class="btn btn-outline-success">
+                                            <i class="fas fa-plus-circle me-1"></i>नया ऑर्डर New Order
+                                        </a>
+                                    {% elif current_user.role == 'vendor' %}
+                                        <a href="{{ url_for('vendor_dashboard') }}" class="btn btn-success">
+                                            <i class="fas fa-store me-1"></i>व्यापारी डैशबोर्ड Vendor Dashboard
+                                        </a>
+                                    {% elif current_user.role == 'delivery_partner' %}
+                                        <a href="{{ url_for('delivery_dashboard') }}" class="btn btn-success">
+                                            <i class="fas fa-motorcycle me-1"></i>डिलीवरी डैशबोर्ड Delivery Dashboard
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="hero-visual">
+                    <div class="tracking-demo">
+                        <div class="tracking-card">
+                            <h5><i class="fas fa-box me-2"></i>ऑर्डर #TK12345</h5>
+                            <div class="tracking-progress">
+                                <div class="progress-step active">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>Pending</span>
+                                </div>
+                                <div class="progress-step active">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>Accepted</span>
+                                </div>
+                                <div class="progress-step active">
+                                    <i class="fas fa-truck"></i>
+                                    <span>In Transit</span>
+                                </div>
+                                <div class="progress-step">
+                                    <i class="fas fa-home"></i>
+                                    <span>Delivered</span>
+                                </div>
+                            </div>
+                            <div class="qr-demo">
+                                <i class="fas fa-qrcode"></i>
+                                <span>QR स्कैन करें Scan QR</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<section class="features-section py-5 bg-light">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="fw-bold">विशेषताएं Features</h2>
+                <p class="text-muted">भारत के लिए विशेष रूप से डिज़ाइन किया गया | Specially designed for India</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-users fa-3x text-primary"></i>
+                    </div>
+                    <h5>तीन उपयोगकर्ता भूमिकाएं</h5>
+                    <h6 class="text-muted">Three User Roles</h6>
+                    <p>ग्राहक, विक्रेता और डिलीवरी पार्टनर के लिए अलग डैशबोर्ड</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-bolt fa-3x text-warning"></i>
+                    </div>
+                    <h5>तुरंत अपडेट</h5>
+                    <h6 class="text-muted">Instant Updates</h6>
+                    <p>WebSocket के माध्यम से रियल-टाइम स्टेटस अपडेट</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-rupee-sign fa-3x text-success"></i>
+                    </div>
+                    <h5>भारतीय स्थानीयकरण</h5>
+                    <h6 class="text-muted">Indian Localization</h6>
+                    <p>IST समय, ₹ करेंसी, और हिंदी भाषा समर्थन</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="how-it-works py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="fw-bold">यह कैसे काम करता है How It Works</h2>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="step-card text-center">
+                    <div class="step-number">1</div>
+                    <i class="fas fa-shopping-cart fa-2x text-primary mb-3"></i>
+                    <h6>ऑर्डर दें Place Order</h6>
+                    <p class="small">विक्रेता चुनें और ऑर्डर विवरण दें</p>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="step-card text-center">
+                    <div class="step-number">2</div>
+                    <i class="fas fa-check-circle fa-2x text-success mb-3"></i>
+                    <h6>स्वीकृति Acceptance</h6>
+                    <p class="small">विक्रेता ऑर्डर स्वीकार करता है</p>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="step-card text-center">
+                    <div class="step-number">3</div>
+                    <i class="fas fa-qrcode fa-2x text-warning mb-3"></i>
+                    <h6>QR ट्रैकिंग QR Tracking</h6>
+                    <p class="small">डिलीवरी पार्टनर QR स्कैन करता है</p>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="step-card text-center">
+                    <div class="step-number">4</div>
+                    <i class="fas fa-home fa-2x text-info mb-3"></i>
+                    <h6>डिलीवरी Delivery</h6>
+                    <p class="small">ग्राहक को पैकेज मिल जाता है</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Demo animation for tracking progress
+function animateTracking() {
+    const steps = document.querySelectorAll('.progress-step');
+    let currentStep = 0;
+    
+    setInterval(() => {
+        steps.forEach(step => step.classList.remove('active'));
+        
+        for (let i = 0; i <= currentStep; i++) {
+            if (steps[i]) {
+                steps[i].classList.add('active');
+            }
+        }
+        
+        currentStep = (currentStep + 1) % steps.length;
+    }, 2000);
+}
+
+// Start animation when page loads
+document.addEventListener('DOMContentLoaded', animateTracking);
+</script>
+{% endblock %}

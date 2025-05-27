@@ -1,0 +1,480 @@
+{% extends "base.html" %}
+
+{% block title %}व्यापारी डैशबोर्ड Vendor Dashboard - TrackIt{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="fw-bold">
+                <i class="fas fa-store me-2 text-success"></i>
+                व्यापारी डैशबोर्ड<br>
+                <small class="text-muted fs-5">Vendor Dashboard</small>
+            </h2>
+            <p class="text-muted">स्वागत है {{ current_user.full_name }}! Welcome!</p>
+            {% if current_user.vendor_profile %}
+                <div class="badge bg-success">{{ current_user.vendor_profile.business_name }}</div>
+            {% endif %}
+        </div>
+        <div class="col-md-4 text-md-end">
+            <div class="btn-group" role="group">
+                <button class="btn btn-outline-primary" onclick="refreshDashboard()">
+                    <i class="fas fa-sync-alt me-2"></i>रिफ्रेश Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm stat-card">
+                <div class="card-body text-center">
+                    <div class="stat-icon bg-warning text-white mb-3">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h4 class="fw-bold">{{ pending_orders|length }}</h4>
+                    <p class="text-muted mb-0">लंबित ऑर्डर<br>Pending Orders</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm stat-card">
+                <div class="card-body text-center">
+                    <div class="stat-icon bg-primary text-white mb-3">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <h4 class="fw-bold">{{ active_orders|length }}</h4>
+                    <p class="text-muted mb-0">सक्रिय ऑर्डर<br>Active Orders</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm stat-card">
+                <div class="card-body text-center">
+                    <div class="stat-icon bg-success text-white mb-3">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h4 class="fw-bold">{{ completed_orders|length }}</h4>
+                    <p class="text-muted mb-0">पूर्ण ऑर्डर<br>Completed Orders</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm stat-card">
+                <div class="card-body text-center">
+                    <div class="stat-icon bg-info text-white mb-3">
+                        <i class="fas fa-rupee-sign"></i>
+                    </div>
+                    <h4 class="fw-bold">₹{{ "%.0f"|format((active_orders + completed_orders)|map(attribute='estimated_amount')|select|sum) }}</h4>
+                    <p class="text-muted mb-0">कुल बिक्री<br>Total Sales</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pending Orders Section -->
+    {% if pending_orders %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clock me-2"></i>लंबित ऑर्डर Pending Orders
+                        <span class="badge bg-white text-warning ms-2">{{ pending_orders|length }}</span>
+                    </h5>
+                </div>
+                
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ऑर्डर ID<br><small>Order ID</small></th>
+                                    <th>ग्राहक<br><small>Customer</small></th>
+                                    <th>विवरण<br><small>Description</small></th>
+                                    <th>समय<br><small>Time</small></th>
+                                    <th>प्राथमिकता<br><small>Priority</small></th>
+                                    <th>कार्य<br><small>Actions</small></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in pending_orders %}
+                                <tr id="pending-order-{{ order.id }}">
+                                    <td>
+                                        <strong class="text-primary">#TK{{ order.id }}</strong>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>{{ order.customer.full_name }}</strong>
+                                            <br><small class="text-muted">{{ order.customer.phone }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="order-description">
+                                            {{ order.order_description[:60] }}{% if order.order_description|length > 60 %}...{% endif %}
+                                        </div>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i>{{ order.window_time }} |
+                                            <i class="fas fa-shipping-fast me-1"></i>{{ order.delivery_speed }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <small>{{ order.get_formatted_created_at() }}</small>
+                                    </td>
+                                    <td>
+                                        {% if order.delivery_speed == 'express' %}
+                                            <span class="badge bg-danger">तुरंत Express</span>
+                                        {% elif order.window_time == '30min' %}
+                                            <span class="badge bg-warning">उच्च High</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">सामान्य Normal</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-success" 
+                                                    onclick="acceptOrder({{ order.id }})">
+                                                <i class="fas fa-check"></i> स्वीकार Accept
+                                            </button>
+                                            <button class="btn btn-sm btn-danger" 
+                                                    onclick="rejectOrder({{ order.id }})">
+                                                <i class="fas fa-times"></i> अस्वीकार Reject
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-primary" 
+                                                    onclick="viewOrderDetails({{ order.id }})">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Active Orders Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-truck me-2"></i>सक्रिय ऑर्डर Active Orders
+                        <span class="badge bg-white text-primary ms-2">{{ active_orders|length }}</span>
+                    </h5>
+                </div>
+                
+                <div class="card-body p-0">
+                    {% if active_orders %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ऑर्डर ID<br><small>Order ID</small></th>
+                                        <th>ग्राहक<br><small>Customer</small></th>
+                                        <th>स्थिति<br><small>Status</small></th>
+                                        <th>डिलीवरी पार्टनर<br><small>Delivery Partner</small></th>
+                                        <th>QR कोड<br><small>QR Code</small></th>
+                                        <th>कार्य<br><small>Actions</small></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in active_orders %}
+                                    <tr id="active-order-{{ order.id }}">
+                                        <td>
+                                            <strong class="text-primary">#TK{{ order.id }}</strong>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <strong>{{ order.customer.full_name }}</strong>
+                                                <br><small class="text-muted">{{ order.customer.address[:30] }}...</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge order-status-{{ order.status }}">
+                                                {{ order.get_status_display() }}
+                                            </span>
+                                            <br><small class="text-muted">QR स्कैन: {{ order.qr_scan_count }}/3</small>
+                                        </td>
+                                        <td>
+                                            {% if order.delivery_partner %}
+                                                <div>
+                                                    <strong>{{ order.delivery_partner.full_name }}</strong>
+                                                    <br><small class="text-muted">{{ order.delivery_partner.phone }}</small>
+                                                </div>
+                                            {% else %}
+                                                <span class="text-muted">असाइन नहीं Not Assigned</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if order.package_qr_code %}
+                                                <button class="btn btn-sm btn-outline-dark" 
+                                                        onclick="showPackageQR({{ order.id }}, '{{ order.package_qr_code }}')">
+                                                    <i class="fas fa-qrcode"></i> QR दिखाएं
+                                                </button>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary" 
+                                                    onclick="viewOrderDetails({{ order.id }})">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-truck fa-2x text-muted mb-3"></i>
+                            <p class="text-muted">कोई सक्रिय ऑर्डर नहीं<br>No active orders</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Completed Orders -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-check-circle me-2"></i>हाल के पूर्ण ऑर्डर Recent Completed Orders
+                    </h5>
+                </div>
+                
+                <div class="card-body p-0">
+                    {% if completed_orders %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ऑर्डर ID<br><small>Order ID</small></th>
+                                        <th>ग्राहक<br><small>Customer</small></th>
+                                        <th>स्थिति<br><small>Status</small></th>
+                                        <th>पूर्ण समय<br><small>Completed</small></th>
+                                        <th>राशि<br><small>Amount</small></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in completed_orders %}
+                                    <tr>
+                                        <td>
+                                            <strong class="text-primary">#TK{{ order.id }}</strong>
+                                        </td>
+                                        <td>
+                                            <strong>{{ order.customer.full_name }}</strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge order-status-{{ order.status }}">
+                                                {{ order.get_status_display() }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <small>
+                                                {% if order.delivered_at %}
+                                                    {{ order.delivered_at.strftime("%d/%m/%Y %I:%M %p") }}
+                                                {% else %}
+                                                    {{ order.get_formatted_created_at() }}
+                                                {% endif %}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            {% if order.final_amount %}
+                                                <strong class="text-success">₹{{ "%.0f"|format(order.final_amount) }}</strong>
+                                            {% elif order.estimated_amount %}
+                                                <span class="text-muted">₹{{ "%.0f"|format(order.estimated_amount) }}</span>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle fa-2x text-muted mb-3"></i>
+                            <p class="text-muted">अभी तक कोई पूर्ण ऑर्डर नहीं<br>No completed orders yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Package QR Modal -->
+<div class="modal fade" id="packageQRModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-qrcode me-2"></i>पैकेज QR कोड Package QR Code
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    इस QR कोड को पैकेज पर चिपकाएं<br>
+                    <small>Attach this QR code to the package</small>
+                </div>
+                <div id="packageQRContainer" class="mb-3">
+                    <!-- QR code will be displayed here -->
+                </div>
+                <p class="text-muted">
+                    <i class="fas fa-truck me-2"></i>डिलीवरी पार्टनर इसे स्कैन करेगा<br>
+                    <small>Delivery partner will scan this code</small>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Details Modal -->
+<div class="modal fade" id="orderDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">ऑर्डर विवरण Order Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="orderDetailsContent">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function acceptOrder(orderId) {
+    if (!confirm('क्या आप इस ऑर्डर को स्वीकार करना चाहते हैं? Do you want to accept this order?')) {
+        return;
+    }
+    
+    fetch(`/order/${orderId}/accept`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('ऑर्डर स्वीकार किया गया! Order accepted!', 'success');
+            // Remove from pending orders table
+            const row = document.getElementById(`pending-order-${orderId}`);
+            if (row) {
+                row.remove();
+            }
+            // Refresh page after a short delay
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            showAlert(data.error || 'Error accepting order', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('नेटवर्क त्रुटि Network error', 'error');
+    });
+}
+
+function rejectOrder(orderId) {
+    if (!confirm('क्या आप इस ऑर्डर को अस्वीकार करना चाहते हैं? Do you want to reject this order?')) {
+        return;
+    }
+    
+    fetch(`/order/${orderId}/reject`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('ऑर्डर अस्वीकार किया गया Order rejected', 'warning');
+            // Remove from pending orders table
+            const row = document.getElementById(`pending-order-${orderId}`);
+            if (row) {
+                row.remove();
+            }
+        } else {
+            showAlert(data.error || 'Error rejecting order', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('नेटवर्क त्रुटि Network error', 'error');
+    });
+}
+
+function showPackageQR(orderId, qrData) {
+    const qrContainer = document.getElementById('packageQRContainer');
+    qrContainer.innerHTML = `
+        <div class="qr-code-display">
+            <div class="qr-placeholder bg-light border p-4 d-inline-block">
+                <i class="fas fa-qrcode fa-5x text-dark"></i>
+                <p class="mt-2 mb-0 small">Package QR for Order #TK${orderId}</p>
+                <code class="small">${qrData}</code>
+            </div>
+        </div>
+    `;
+    
+    new bootstrap.Modal(document.getElementById('packageQRModal')).show();
+}
+
+function viewOrderDetails(orderId) {
+    // This would fetch order details from the server
+    // For now, show a simple placeholder
+    const content = `
+        <div class="text-center py-4">
+            <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
+            <h5>ऑर्डर #TK${orderId} का विवरण</h5>
+            <p class="text-muted">Order details for #TK${orderId}</p>
+        </div>
+    `;
+    
+    document.getElementById('orderDetailsContent').innerHTML = content;
+    new bootstrap.Modal(document.getElementById('orderDetailsModal')).show();
+}
+
+function refreshDashboard() {
+    location.reload();
+}
+
+function showAlert(message, type) {
+    const alertClass = type === 'error' ? 'danger' : type;
+    const alertHtml = `
+        <div class="alert alert-${alertClass} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    
+    // Insert at the top of the container
+    const container = document.querySelector('.container');
+    container.insertAdjacentHTML('afterbegin', alertHtml);
+}
+</script>
+{% endblock %}
