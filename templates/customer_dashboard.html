@@ -1,6 +1,7 @@
+
 {% extends "base.html" %}
 
-{% block title %}ग्राहक डैशबोर्ड Customer Dashboard - TrackIt{% endblock %}
+{% block title %}Customer Dashboard - TrackIt{% endblock %}
 
 {% block content %}
 <div class="container py-4">
@@ -9,14 +10,13 @@
         <div class="col-md-8">
             <h2 class="fw-bold">
                 <i class="fas fa-tachometer-alt me-2 text-primary"></i>
-                ग्राहक डैशबोर्ड<br>
-                <small class="text-muted fs-5">Customer Dashboard</small>
+                Customer Dashboard
             </h2>
-            <p class="text-muted">स्वागत है {{ current_user.full_name }}! Welcome!</p>
+            <p class="text-muted">Welcome {{ current_user.full_name }}!</p>
         </div>
         <div class="col-md-4 text-md-end">
             <a href="{{ url_for('create_order') }}" class="btn btn-primary btn-lg">
-                <i class="fas fa-plus-circle me-2"></i>नया ऑर्डर New Order
+                <i class="fas fa-plus-circle me-2"></i>New Order
             </a>
         </div>
     </div>
@@ -30,7 +30,7 @@
                         <i class="fas fa-shopping-cart"></i>
                     </div>
                     <h4 class="fw-bold">{{ orders|length }}</h4>
-                    <p class="text-muted mb-0">कुल ऑर्डर<br>Total Orders</p>
+                    <p class="text-muted mb-0">Total Orders</p>
                 </div>
             </div>
         </div>
@@ -42,7 +42,7 @@
                         <i class="fas fa-check-circle"></i>
                     </div>
                     <h4 class="fw-bold">{{ current_user.successful_orders }}</h4>
-                    <p class="text-muted mb-0">सफल ऑर्डर<br>Successful Orders</p>
+                    <p class="text-muted mb-0">Successful Orders</p>
                 </div>
             </div>
         </div>
@@ -56,7 +56,7 @@
                     <h4 class="fw-bold">
                         {{ orders|selectattr('status', 'in', ['pending', 'accepted', 'dispatched', 'in_transit', 'out_for_delivery'])|list|length }}
                     </h4>
-                    <p class="text-muted mb-0">सक्रिय ऑर्डर<br>Active Orders</p>
+                    <p class="text-muted mb-0">Active Orders</p>
                 </div>
             </div>
         </div>
@@ -70,10 +70,10 @@
                     <div class="ai-status">
                         {% if current_user.can_use_ai_predictions() %}
                             <i class="fas fa-check-circle text-success"></i>
-                            <p class="text-success mb-0 small">AI सक्रिय<br>AI Active</p>
+                            <p class="text-success mb-0 small">AI Active</p>
                         {% else %}
                             <i class="fas fa-times-circle text-muted"></i>
-                            <p class="text-muted mb-0 small">{{ 5 - current_user.successful_orders }} और ऑर्डर<br>{{ 5 - current_user.successful_orders }} more orders</p>
+                            <p class="text-muted mb-0 small">{{ 5 - current_user.successful_orders }} more orders</p>
                         {% endif %}
                     </div>
                 </div>
@@ -87,7 +87,7 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom">
                     <h5 class="mb-0">
-                        <i class="fas fa-list me-2"></i>आपके ऑर्डर Your Orders
+                        <i class="fas fa-list me-2"></i>Your Orders
                     </h5>
                 </div>
                 
@@ -97,12 +97,12 @@
                             <table class="table table-hover mb-0">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>ऑर्डर ID<br><small>Order ID</small></th>
-                                        <th>विक्रेता<br><small>Vendor</small></th>
-                                        <th>विवरण<br><small>Description</small></th>
-                                        <th>स्थिति<br><small>Status</small></th>
-                                        <th>समय<br><small>Time</small></th>
-                                        <th>कार्य<br><small>Actions</small></th>
+                                        <th>Order ID</th>
+                                        <th>Vendor</th>
+                                        <th>Description</th>
+                                        <th>Status</th>
+                                        <th>Time</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -130,7 +130,7 @@
                                             </small>
                                         </td>
                                         <td>
-                                            <span class="badge order-status-{{ order.status }}">
+                                            <span class="badge bg-dark text-white">
                                                 {{ order.get_status_display() }}
                                             </span>
                                         </td>
@@ -160,10 +160,10 @@
                     {% else %}
                         <div class="text-center py-5">
                             <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">अभी तक कोई ऑर्डर नहीं</h5>
-                            <p class="text-muted">No orders yet</p>
+                            <h5 class="text-muted">No orders yet</h5>
+                            <p class="text-muted">Start by placing your first order</p>
                             <a href="{{ url_for('create_order') }}" class="btn btn-primary">
-                                <i class="fas fa-plus-circle me-2"></i>पहला ऑर्डर दें Place First Order
+                                <i class="fas fa-plus-circle me-2"></i>Place First Order
                             </a>
                         </div>
                     {% endif %}
@@ -178,7 +178,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">ऑर्डर विवरण Order Details</h5>
+                <h5 class="modal-title">Order Details</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="orderDetailsContent">
@@ -194,22 +194,20 @@
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
                 <h5 class="modal-title">
-                    <i class="fas fa-qrcode me-2"></i>डिलीवरी QR कोड Delivery QR Code
+                    <i class="fas fa-qrcode me-2"></i>Delivery QR Code
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center">
                 <div class="alert alert-info">
                     <i class="fas fa-info-circle me-2"></i>
-                    डिलीवरी पार्टनर को यह QR कोड दिखाएं<br>
-                    <small>Show this QR code to the delivery partner</small>
+                    Show this QR code to the delivery partner
                 </div>
                 <div id="qrCodeContainer" class="mb-3">
                     <!-- QR code will be displayed here -->
                 </div>
                 <p class="text-muted">
-                    <i class="fas fa-clock me-2"></i>यह कोड डिलीवरी के समय ही मान्य है<br>
-                    <small>This code is valid only at the time of delivery</small>
+                    <i class="fas fa-clock me-2"></i>This code is valid only at the time of delivery
                 </p>
             </div>
         </div>
@@ -220,31 +218,34 @@
 {% block extra_scripts %}
 <script>
 function viewOrderDetails(orderId) {
-    // Create order details content
+    // Find order data
     const order = orders.find(o => o.id === orderId);
-    if (!order) return;
+    if (!order) {
+        alert('Order not found');
+        return;
+    }
     
     const content = `
         <div class="order-details">
             <div class="row g-3">
                 <div class="col-md-6">
-                    <h6>ऑर्डर आईडी Order ID</h6>
+                    <h6>Order ID</h6>
                     <p class="text-primary fw-bold">#TK${orderId}</p>
                 </div>
                 <div class="col-md-6">
-                    <h6>स्थिति Status</h6>
-                    <span class="badge order-status-${order.status}">${order.status_display}</span>
+                    <h6>Status</h6>
+                    <span class="badge bg-dark text-white">${order.status_display}</span>
                 </div>
                 <div class="col-12">
-                    <h6>ऑर्डर विवरण Order Description</h6>
+                    <h6>Order Description</h6>
                     <p>${order.description}</p>
                 </div>
                 <div class="col-md-6">
-                    <h6>समय खिड़की Window Time</h6>
+                    <h6>Window Time</h6>
                     <p>${order.window_time}</p>
                 </div>
                 <div class="col-md-6">
-                    <h6>डिलीवरी गति Delivery Speed</h6>
+                    <h6>Delivery Speed</h6>
                     <p>${order.delivery_speed}</p>
                 </div>
             </div>
@@ -256,7 +257,6 @@ function viewOrderDetails(orderId) {
 }
 
 function showDeliveryQR(orderId, qrData) {
-    // Generate QR code image
     const qrContainer = document.getElementById('qrCodeContainer');
     qrContainer.innerHTML = `
         <div class="qr-code-display">
@@ -270,7 +270,7 @@ function showDeliveryQR(orderId, qrData) {
     new bootstrap.Modal(document.getElementById('deliveryQRModal')).show();
 }
 
-// Simulated orders data for the modal (in real app, this would come from the server)
+// Orders data for the modal
 const orders = [
     {% for order in orders %}
     {

@@ -1,3 +1,4 @@
+
 import pandas as pd
 import numpy as np
 from sklearn.svm import SVC
@@ -193,16 +194,15 @@ def get_ai_predictions(customer_id, vendor_id=None):
         if predictions:
             # Add user-friendly descriptions
             window_descriptions = {
-                '30min': '30 मिनट में (30 minutes)',
-                '1hour': '1 घंटे में (1 hour)',
-                '2hour': '2 घंटे में (2 hours)',
-                'flexible': 'लचीला समय (Flexible timing)'
+                '9am-12pm': '9 AM - 12 PM (Morning)',
+                '12pm-4pm': '12 PM - 4 PM (Afternoon)',
+                '4pm-9pm': '4 PM - 9 PM (Evening)',
+                '9pm-9am': '9 PM - 9 AM (Night/Early Morning)'
             }
             
             speed_descriptions = {
-                'express': 'तेज़ डिलीवरी (Express)',
-                'standard': 'सामान्य डिलीवरी (Standard)',
-                'economy': 'मितव्यी डिलीवरी (Economy)'
+                'express': 'Express - Same Day Delivery',
+                'regular': 'Regular - 1-7 Days'
             }
             
             predictions['window_description'] = window_descriptions.get(

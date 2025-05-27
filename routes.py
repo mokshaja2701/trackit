@@ -171,19 +171,60 @@ def create_order():
         return redirect(url_for('index'))
     
     if request.method == 'POST':
-        vendor_id = request.form['vendor_id']
-        order_description = request.form['order_description']
-        window_time = request.form['window_time']
-        delivery_speed = request.form['delivery_speed']
+        vendor_id = request.form.get('vendor_id')
+        order_description = request.form.get('order_description', '').strip()
+        window_time = request.form.get('window_time')
+        delivery_speed = request.form.get('delivery_speed')
+        
+        # Validation
+        if not vendor_id:
+            flash('Please select a vendor.', 'error')
+            vendors = get_available_vendors()
+            predictions = None
+            if current_user.can_use_ai_predictions():
+                predictions = get_ai_predictions(current_user.id)
+            return render_template('create_order.html', vendors=vendors, predictions=predictions)
+        
+        if not order_description:
+            flash('Please provide order description.', 'error')
+            vendors = get_available_vendors()
+            predictions = None
+            if current_user.can_use_ai_predictions():
+                predictions = get_ai_predictions(current_user.id)
+            return render_template('create_order.html', vendors=vendors, predictions=predictions)
+        
+        if not window_time or window_time not in ['9am-12pm', '12pm-4pm', '4pm-9pm', '9pm-9am']:
+            flash('Please select a valid delivery window.', 'error')
+            vendors = get_available_vendors()
+            predictions = None
+            if current_user.can_use_ai_predictions():
+                predictions = get_ai_predictions(current_user.id)
+            return render_template('create_order.html', vendors=vendors, predictions=predictions)
+        
+        if not delivery_speed or delivery_speed not in ['express', 'regular']:
+            flash('Please select a valid delivery speed.', 'error')
+            vendors = get_available_vendors()
+            predictions = None
+            if current_user.can_use_ai_predictions():
+                predictions = get_ai_predictions(current_user.id)
+            return render_template('create_order.html', vendors=vendors, predictions=predictions)
+        
+        # Calculate estimated amount
+        base_amount = 100
+        if delivery_speed == 'express':
+            estimated_amount = base_amount + 50
+        else:
+            estimated_amount = base_amount
         
         # Create new order
         order = Order(
             customer_id=current_user.id,
-            vendor_id=vendor_id,
+            vendor_id=int(vendor_id),
             order_description=order_description,
             window_time=window_time,
             delivery_speed=delivery_speed,
-            status='pending'
+            status='pending',
+            estimated_amount=estimated_amount
         )
         
         db.session.add(order)
@@ -206,7 +247,7 @@ def create_order():
     
     # Get AI predictions if eligible
     predictions = None
-    if hasattr(current_user, 'can_use_ai_predictions') and current_user.can_use_ai_predictions():
+    if current_user.can_use_ai_predictions():
         predictions = get_ai_predictions(current_user.id)
     
     return render_template('create_order.html', vendors=vendors, predictions=predictions)

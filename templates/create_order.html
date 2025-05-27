@@ -1,56 +1,50 @@
 {% extends "base.html" %}
 
-{% block title %}नया ऑर्डर New Order - TrackIt{% endblock %}
+{% block title %}Create New Order - TrackIt{% endblock %}
 
 {% block content %}
 <div class="container py-4">
     <!-- Header -->
     <div class="row mb-4">
-        <div class="col-md-8">
-            <h2 class="fw-bold">
-                <i class="fas fa-plus-circle me-2 text-primary"></i>
-                नया ऑर्डर बनाएं<br>
-                <small class="text-muted fs-5">Create New Order</small>
+        <div class="col-lg-8 mx-auto">
+            <h2 class="text-center fw-bold">
+                <i class="fas fa-plus-circle me-2 text-primary"></i>Create New Order
             </h2>
-        </div>
-        <div class="col-md-4 text-md-end">
-            <a href="{{ url_for('customer_dashboard') }}" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-2"></i>वापस Back
-            </a>
+            <p class="text-center text-muted">Place a new order with our vendors</p>
         </div>
     </div>
-    
-    <!-- AI Predictions Alert -->
+
+    <!-- AI Recommendations (if available) -->
     {% if predictions %}
     <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-success">
+        <div class="col-lg-8 mx-auto">
+            <div class="card border-success shadow-sm">
                 <div class="card-header bg-success text-white">
                     <h6 class="mb-0">
-                        <i class="fas fa-brain me-2"></i>AI सुझाव AI Recommendations
-                        <span class="badge bg-white text-success ms-2">{{ current_user.successful_orders }} सफल ऑर्डर</span>
+                        <i class="fas fa-brain me-2"></i>AI Recommendations
+                        <span class="badge bg-white text-success ms-2">5 Successful Orders</span>
                     </h6>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <h6 class="text-success">सुझावित समय खिड़की Suggested Window Time</h6>
+                            <h6 class="text-success">Suggested Window Time</h6>
                             <div class="d-flex align-items-center">
                                 <span class="badge bg-success me-2">{{ predictions.window_description }}</span>
-                                <small class="text-muted">{{ predictions.window_confidence_percent }}% विश्वसनीयता</small>
+                                <small class="text-muted">{{ predictions.window_confidence_percent }}% confidence</small>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <h6 class="text-success">सुझावित डिलीवरी गति Suggested Delivery Speed</h6>
+                            <h6 class="text-success">Suggested Delivery Speed</h6>
                             <div class="d-flex align-items-center">
                                 <span class="badge bg-success me-2">{{ predictions.speed_description }}</span>
-                                <small class="text-muted">{{ predictions.speed_confidence_percent }}% विश्वसनीयता</small>
+                                <small class="text-muted">{{ predictions.speed_confidence_percent }}% confidence</small>
                             </div>
                         </div>
                     </div>
                     <div class="mt-3">
                         <button type="button" class="btn btn-sm btn-success" onclick="applyAISuggestions()">
-                            <i class="fas fa-magic me-2"></i>AI सुझाव लागू करें Apply AI Suggestions
+                            <i class="fas fa-magic me-2"></i>Apply AI Suggestions
                         </button>
                     </div>
                 </div>
@@ -62,162 +56,142 @@
         <div class="col-12">
             <div class="alert alert-info">
                 <i class="fas fa-info-circle me-2"></i>
-                <strong>AI सुझाव के लिए {{ 5 - current_user.successful_orders }} और सफल ऑर्डर चाहिए।</strong><br>
+                <strong>Need {{ 5 - current_user.successful_orders }} more successful orders for AI recommendations.</strong>
                 <small>Need {{ 5 - current_user.successful_orders }} more successful orders for AI recommendations.</small>
             </div>
         </div>
     </div>
     {% endif %}
-    
+
     <!-- Order Form -->
     <div class="row">
         <div class="col-lg-8 mx-auto">
-            <div class="card border-0 shadow-lg">
+            <div class="card border-0 shadow-sm">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
-                        <i class="fas fa-shopping-cart me-2"></i>ऑर्डर विवरण Order Details
+                        <i class="fas fa-shopping-cart me-2"></i>Order Details
                     </h5>
                 </div>
-                
-                <div class="card-body p-4">
+
+                <div class="card-body">
                     <form method="POST" id="orderForm">
                         <!-- Vendor Selection -->
                         <div class="mb-4">
-                            <label for="vendor_id" class="form-label fw-semibold">
-                                <i class="fas fa-store me-2"></i>विक्रेता चुनें Select Vendor <span class="text-danger">*</span>
+                            <label for="vendor_id" class="form-label fw-bold">
+                                <i class="fas fa-store me-2"></i>Select Vendor <span class="text-danger">*</span>
                             </label>
-                            <select class="form-select form-select-lg" id="vendor_id" name="vendor_id" required>
-                                <option value="">-- विक्रेता चुनें Select Vendor --</option>
+                            <select class="form-select" id="vendor_id" name="vendor_id" required onchange="updateOrderSummary()">
+                                <option value="">-- Select Vendor --</option>
                                 {% for vendor in vendors %}
-                                <option value="{{ vendor.id }}" 
-                                        data-business-type="{{ vendor.business_type }}"
-                                        data-address="{{ vendor.address }}"
-                                        data-phone="{{ vendor.phone }}">
-                                    {{ vendor.business_name }} - {{ vendor.business_type }}
-                                </option>
+                                    <option value="{{ vendor.id }}" 
+                                            data-business-type="{{ vendor.business_type }}"
+                                            data-address="{{ vendor.address }}"
+                                            data-phone="{{ vendor.phone }}">
+                                        {{ vendor.business_name }} - {{ vendor.business_type }}
+                                    </option>
                                 {% endfor %}
                             </select>
-                            <div class="form-text">अपने नज़दीकी विक्रेता को चुनें Choose your preferred vendor</div>
+                            <small class="text-muted">Choose your preferred vendor</small>
                             
                             <!-- Vendor Info Display -->
                             <div id="vendorInfo" class="mt-3" style="display: none;">
                                 <div class="card bg-light border-0">
                                     <div class="card-body p-3">
-                                        <h6 class="mb-2">विक्रेता जानकारी Vendor Information</h6>
+                                        <h6 class="mb-2">Vendor Information</h6>
                                         <div id="vendorDetails"></div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Order Description -->
                         <div class="mb-4">
-                            <label for="order_description" class="form-label fw-semibold">
-                                <i class="fas fa-list me-2"></i>ऑर्डर विवरण Order Description <span class="text-danger">*</span>
+                            <label for="order_description" class="form-label fw-bold">
+                                <i class="fas fa-list me-2"></i>Order Description <span class="text-danger">*</span>
                             </label>
-                            <textarea class="form-control" id="order_description" name="order_description" 
-                                      rows="4" required 
-                                      placeholder="अपने ऑर्डर का विस्तृत विवरण लिखें...&#10;&#10;उदाहरण:&#10;• 2 किलो चावल (बासमती)&#10;• 1 किलो दाल (तूर दाल)&#10;• 500 ग्राम चीनी&#10;• सब्जी पैकेट - आलू, प्याज, टमाटर&#10;&#10;Write detailed description of your order...&#10;&#10;Example:&#10;• 2kg rice (Basmati)&#10;• 1kg dal (Toor dal)&#10;• 500g sugar&#10;• Vegetable pack - potatoes, onions, tomatoes"></textarea>
-                            <div class="form-text">
-                                <i class="fas fa-lightbulb me-1 text-warning"></i>
-                                स्पष्ट और विस्तृत विवरण दें ताकि विक्रेता आसानी से समझ सके<br>
-                                <small>Provide clear and detailed description for better understanding</small>
-                            </div>
+                            <textarea class="form-control" id="order_description" name="order_description" rows="4" 
+                                      placeholder="Describe your order in detail..." required oninput="updateOrderSummary()"></textarea>
+                            <small class="text-muted">Provide detailed description of your order</small>
                         </div>
-                        
-                        <!-- Order Preferences -->
-                        <div class="row g-4 mb-4">
-                            <div class="col-md-6">
-                                <label for="window_time" class="form-label fw-semibold">
-                                    <i class="fas fa-clock me-2"></i>समय खिड़की Window Time <span class="text-danger">*</span>
-                                </label>
-                                <select class="form-select" id="window_time" name="window_time" required>
-                                    <option value="">-- समय चुनें Select Time --</option>
-                                    <option value="30min">30 मिनट में (30 minutes)</option>
-                                    <option value="1hour">1 घंटे में (1 hour)</option>
-                                    <option value="2hour">2 घंटे में (2 hours)</option>
-                                    <option value="flexible">लचीला समय (Flexible timing)</option>
-                                </select>
-                                <div class="form-text">कब तक डिलीवरी चाहिए When do you need delivery</div>
-                            </div>
-                            
-                            <div class="col-md-6">
-                                <label for="delivery_speed" class="form-label fw-semibold">
-                                    <i class="fas fa-shipping-fast me-2"></i>डिलीवरी गति Delivery Speed <span class="text-danger">*</span>
-                                </label>
-                                <select class="form-select" id="delivery_speed" name="delivery_speed" required>
-                                    <option value="">-- गति चुनें Select Speed --</option>
-                                    <option value="express">तेज़ डिलीवरी (Express) - ₹50 अतिरिक्त</option>
-                                    <option value="standard">सामान्य डिलीवरी (Standard)</option>
-                                    <option value="economy">मितव्यी डिलीवरी (Economy) - ₹20 छूट</option>
-                                </select>
-                                <div class="form-text">डिलीवरी की गति चुनें Choose delivery speed</div>
-                            </div>
-                        </div>
-                        
-                        <!-- Estimated Cost Display -->
+
+                        <!-- Window Time Selection -->
                         <div class="mb-4">
-                            <div class="card bg-light border-0">
+                            <label for="window_time" class="form-label fw-bold">
+                                <i class="fas fa-clock me-2"></i>Delivery Window <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select" id="window_time" name="window_time" required onchange="updateOrderSummary(); updateCost()">
+                                <option value="">-- Select Time Window --</option>
+                                <option value="9am-12pm">9 AM - 12 PM (Morning)</option>
+                                <option value="12pm-4pm">12 PM - 4 PM (Afternoon)</option>
+                                <option value="4pm-9pm">4 PM - 9 PM (Evening)</option>
+                                <option value="9pm-9am">9 PM - 9 AM (Night/Early Morning)</option>
+                            </select>
+                            <small class="text-muted">Choose your preferred delivery time window</small>
+                        </div>
+
+                        <!-- Delivery Speed Selection -->
+                        <div class="mb-4">
+                            <label for="delivery_speed" class="form-label fw-bold">
+                                <i class="fas fa-shipping-fast me-2"></i>Delivery Speed <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select" id="delivery_speed" name="delivery_speed" required onchange="updateOrderSummary(); updateCost()">
+                                <option value="">-- Select Delivery Speed --</option>
+                                <option value="express">Express - Same Day Delivery (+₹50)</option>
+                                <option value="regular">Regular - 1-7 Days (Standard Rate)</option>
+                            </select>
+                            <small class="text-muted">Choose delivery speed based on your urgency</small>
+                        </div>
+
+                        <!-- Cost Summary -->
+                        <div class="mb-4">
+                            <div class="card bg-light">
                                 <div class="card-body">
-                                    <h6 class="mb-3">
-                                        <i class="fas fa-calculator me-2"></i>अनुमानित लागत Estimated Cost
-                                    </h6>
-                                    <div class="row g-3">
-                                        <div class="col-md-4">
-                                            <small class="text-muted">बेस डिलीवरी Base Delivery</small>
-                                            <div class="fw-bold">₹40</div>
+                                    <h6 class="fw-bold">Cost Summary</h6>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <small>Base Cost:</small>
+                                            <div class="fw-bold">₹<span id="baseCost">100</span></div>
                                         </div>
-                                        <div class="col-md-4">
-                                            <small class="text-muted">स्पीड चार्ज Speed Charge</small>
+                                        <div class="col-6">
+                                            <small>Speed Charge:</small>
                                             <div class="fw-bold" id="speedCharge">₹0</div>
                                         </div>
-                                        <div class="col-md-4">
-                                            <small class="text-muted">कुल Total</small>
-                                            <div class="fw-bold text-primary h5" id="totalCost">₹40</div>
+                                        <div class="col-12 mt-2 pt-2 border-top">
+                                            <small>Total Estimated Cost:</small>
+                                            <div class="h5 text-primary" id="totalCost">₹100</div>
                                         </div>
                                     </div>
-                                    <small class="text-muted">
-                                        <i class="fas fa-info-circle me-1"></i>
-                                        वास्तविक लागत विक्रेता द्वारा निर्धारित की जाएगी<br>
-                                        Actual cost will be determined by the vendor
-                                    </small>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Order Summary -->
                         <div class="mb-4">
-                            <div class="card border-primary">
-                                <div class="card-header bg-primary text-white">
-                                    <h6 class="mb-0">
-                                        <i class="fas fa-clipboard-list me-2"></i>ऑर्डर सारांश Order Summary
-                                    </h6>
+                            <div class="card border-info">
+                                <div class="card-header bg-info text-white">
+                                    <h6 class="mb-0">Order Summary</h6>
                                 </div>
-                                <div class="card-body">
-                                    <div id="orderSummary">
-                                        <p class="text-muted">फॉर्म भरने के बाद सारांश यहाँ दिखेगा<br>
-                                        Summary will appear here after filling the form</p>
-                                    </div>
+                                <div class="card-body" id="orderSummary">
+                                    <p class="text-muted">Summary will appear here after filling the form</p>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Terms and Conditions -->
                         <div class="mb-4">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="terms" required>
                                 <label class="form-check-label" for="terms">
-                                    मैं समझता हूं कि यह ऑर्डर विक्रेता की स्वीकृति के अधीन है और मैं 
-                                    <a href="#" class="text-decoration-none">नियम और शर्तों</a> से सहमत हूं।<br>
+                                    I understand this order is subject to vendor approval and agree to <a href="#" class="text-decoration-none">terms and conditions</a>.
                                     <small class="text-muted">I understand this order is subject to vendor approval and agree to terms and conditions.</small>
                                 </label>
                             </div>
                         </div>
-                        
+
                         <!-- Submit Button -->
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-paper-plane me-2"></i>ऑर्डर दें Place Order
+                                <i class="fas fa-paper-plane me-2"></i>Place Order
                             </button>
                         </div>
                     </form>
@@ -225,34 +199,34 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Order Placement Tips -->
     <div class="row mt-4">
         <div class="col-lg-8 mx-auto">
             <div class="card border-info">
                 <div class="card-header bg-info text-white">
                     <h6 class="mb-0">
-                        <i class="fas fa-lightbulb me-2"></i>ऑर्डर देने की युक्तियां Order Placement Tips
+                        <i class="fas fa-lightbulb me-2"></i>Order Placement Tips
                     </h6>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <h6 class="text-info">बेहतर विवरण के लिए:</h6>
+                            <h6 class="text-info">For Better Description:</h6>
                             <ul class="small">
-                                <li>सटीक मात्रा बताएं (किलो/ग्राम)</li>
-                                <li>ब्रांड प्राथमिकता का उल्लेख करें</li>
-                                <li>गुणवत्ता की आवश्यकताएं बताएं</li>
-                                <li>वैकल्पिक विकल्प भी दें</li>
+                                <li>Mention exact quantities (kg/grams/pieces)</li>
+                                <li>Specify brand preferences if any</li>
+                                <li>Mention quality requirements</li>
+                                <li>Include color/size specifications</li>
                             </ul>
                         </div>
                         <div class="col-md-6">
-                            <h6 class="text-info">For better description:</h6>
+                            <h6 class="text-info">Delivery Options:</h6>
                             <ul class="small">
-                                <li>Specify exact quantities (kg/grams)</li>
-                                <li>Mention brand preferences</li>
-                                <li>State quality requirements</li>
-                                <li>Provide alternative options</li>
+                                <li>Express for urgent deliveries (same day)</li>
+                                <li>Regular for standard delivery (1-7 days)</li>
+                                <li>Choose appropriate time windows</li>
+                                <li>Night delivery available for convenience</li>
                             </ul>
                         </div>
                     </div>
@@ -265,8 +239,8 @@
 
 {% block extra_scripts %}
 <script>
-// AI Predictions data
-const aiPredictions = {{ predictions|tojson if predictions else 'null' }};
+// AI prediction data
+const predictions = {% if predictions %}{{ predictions|tojson }}{% else %}null{% endif %};
 
 // Vendor selection handler
 document.getElementById('vendor_id').addEventListener('change', function() {
@@ -282,15 +256,15 @@ document.getElementById('vendor_id').addEventListener('change', function() {
         vendorDetails.innerHTML = `
             <div class="row g-2">
                 <div class="col-md-6">
-                    <small class="text-muted">व्यापार प्रकार Business Type:</small>
+                    <small class="text-muted">Business Type:</small>
                     <div class="fw-semibold">${businessType}</div>
                 </div>
                 <div class="col-md-6">
-                    <small class="text-muted">फोन Phone:</small>
+                    <small class="text-muted">Phone:</small>
                     <div class="fw-semibold">${phone}</div>
                 </div>
                 <div class="col-12">
-                    <small class="text-muted">पता Address:</small>
+                    <small class="text-muted">Address:</small>
                     <div class="fw-semibold">${address}</div>
                 </div>
             </div>
@@ -303,39 +277,45 @@ document.getElementById('vendor_id').addEventListener('change', function() {
     updateOrderSummary();
 });
 
-// Delivery speed change handler
-document.getElementById('delivery_speed').addEventListener('change', function() {
-    updateCostCalculation();
+function applyAISuggestions() {
+    if (!predictions) return;
+
+    // Apply window time suggestion
+    const windowSelect = document.getElementById('window_time');
+    const speedSelect = document.getElementById('delivery_speed');
+
+    // Map AI predictions to form values
+    let windowValue = predictions.window_time;
+    let speedValue = predictions.delivery_speed;
+
+    if (windowValue) {
+        windowSelect.value = windowValue;
+    }
+
+    if (speedValue) {
+        speedSelect.value = speedValue;
+    }
+
     updateOrderSummary();
-});
+    updateCost();
+}
 
-// Form field change handlers
-['window_time', 'order_description'].forEach(fieldId => {
-    document.getElementById(fieldId).addEventListener('change', updateOrderSummary);
-});
-
-function updateCostCalculation() {
+function updateCost() {
     const deliverySpeed = document.getElementById('delivery_speed').value;
+    let baseCost = 100;
+    let speedCharge = 0;
+
+    if (deliverySpeed === 'express') {
+        speedCharge = 50;
+    }
+
+    const total = baseCost + speedCharge;
+
+    document.getElementById('baseCost').textContent = baseCost;
     const speedChargeElement = document.getElementById('speedCharge');
     const totalCostElement = document.getElementById('totalCost');
-    
-    let baseDelivery = 40;
-    let speedCharge = 0;
-    
-    switch (deliverySpeed) {
-        case 'express':
-            speedCharge = 50;
-            break;
-        case 'economy':
-            speedCharge = -20;
-            break;
-        default:
-            speedCharge = 0;
-    }
-    
-    const total = baseDelivery + speedCharge;
-    
-    speedChargeElement.textContent = speedCharge >= 0 ? `₹${speedCharge}` : `₹${speedCharge}`;
+
+    speedChargeElement.textContent = speedCharge >= 0 ? `+₹${speedCharge}` : `₹${speedCharge}`;
     speedChargeElement.className = speedCharge >= 0 ? 'fw-bold' : 'fw-bold text-success';
     totalCostElement.textContent = `₹${total}`;
 }
@@ -346,111 +326,97 @@ function updateOrderSummary() {
     const windowTime = document.getElementById('window_time').value;
     const deliverySpeed = document.getElementById('delivery_speed').value;
     const summaryElement = document.getElementById('orderSummary');
-    
+
     if (!vendorSelect.value || !description || !windowTime || !deliverySpeed) {
         summaryElement.innerHTML = `
-            <p class="text-muted">फॉर्म भरने के बाद सारांश यहाँ दिखेगा<br>
-            Summary will appear here after filling the form</p>
+            <p class="text-muted">Summary will appear here after filling the form</p>
         `;
         return;
     }
-    
+
     const vendorName = vendorSelect.options[vendorSelect.selectedIndex].text;
     const windowTimeText = getWindowTimeText(windowTime);
     const deliverySpeedText = getDeliverySpeedText(deliverySpeed);
-    
+
     summaryElement.innerHTML = `
         <div class="summary-content">
             <div class="row g-3">
                 <div class="col-md-6">
-                    <h6 class="text-primary">विक्रेता Vendor:</h6>
+                    <h6 class="text-primary">Vendor:</h6>
                     <p class="mb-1">${vendorName}</p>
                 </div>
                 <div class="col-md-6">
-                    <h6 class="text-primary">विवरण Description:</h6>
-                    <p class="mb-1">${description.substring(0, 100)}${description.length > 100 ? '...' : ''}</p>
-                </div>
-                <div class="col-md-6">
-                    <h6 class="text-primary">समय Window:</h6>
+                    <h6 class="text-primary">Delivery Window:</h6>
                     <p class="mb-1">${windowTimeText}</p>
                 </div>
                 <div class="col-md-6">
-                    <h6 class="text-primary">डिलीवरी Speed:</h6>
+                    <h6 class="text-primary">Delivery Speed:</h6>
                     <p class="mb-1">${deliverySpeedText}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-primary">Order Items:</h6>
+                    <p class="mb-1">${description.substring(0, 50)}${description.length > 50 ? '...' : ''}</p>
                 </div>
             </div>
         </div>
     `;
 }
 
-function getWindowTimeText(windowTime) {
+function getWindowTimeText(value) {
     const options = {
-        '30min': '30 मिनट में (30 minutes)',
-        '1hour': '1 घंटे में (1 hour)',
-        '2hour': '2 घंटे में (2 hours)',
-        'flexible': 'लचीला समय (Flexible timing)'
+        '9am-12pm': '9 AM - 12 PM (Morning)',
+        '12pm-4pm': '12 PM - 4 PM (Afternoon)',
+        '4pm-9pm': '4 PM - 9 PM (Evening)',
+        '9pm-9am': '9 PM - 9 AM (Night/Early Morning)'
     };
-    return options[windowTime] || windowTime;
+    return options[value] || value;
 }
 
-function getDeliverySpeedText(deliverySpeed) {
+function getDeliverySpeedText(value) {
     const options = {
-        'express': 'तेज़ डिलीवरी (Express)',
-        'standard': 'सामान्य डिलीवरी (Standard)',
-        'economy': 'मितव्यी डिलीवरी (Economy)'
+        'express': 'Express - Same Day Delivery',
+        'regular': 'Regular - 1-7 Days'
     };
-    return options[deliverySpeed] || deliverySpeed;
+    return options[value] || value;
 }
 
-function applyAISuggestions() {
-    if (!aiPredictions) return;
-    
-    // Apply AI suggested window time
-    document.getElementById('window_time').value = aiPredictions.window_time;
-    
-    // Apply AI suggested delivery speed
-    document.getElementById('delivery_speed').value = aiPredictions.delivery_speed;
-    
-    // Update cost calculation and summary
-    updateCostCalculation();
-    updateOrderSummary();
-    
-    // Show success message
-    showAlert('AI सुझाव लागू किए गए! AI suggestions applied!', 'success');
-}
-
-function showAlert(message, type) {
-    const alertClass = type === 'error' ? 'danger' : type;
-    const alertHtml = `
-        <div class="alert alert-${alertClass} alert-dismissible fade show" role="alert">
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    `;
-    
-    // Insert at the top of the container
-    const container = document.querySelector('.container');
-    container.insertAdjacentHTML('afterbegin', alertHtml);
-}
-
-// Form validation
+// Form submission
 document.getElementById('orderForm').addEventListener('submit', function(e) {
-    const description = document.getElementById('order_description').value.trim();
-    
-    if (description.length < 10) {
-        e.preventDefault();
-        showAlert('कृपया ऑर्डर का विस्तृत विवरण दें (कम से कम 10 अक्षर)। Please provide detailed order description (minimum 10 characters).', 'error');
-        return false;
-    }
-    
-    if (description.length > 1000) {
-        e.preventDefault();
-        showAlert('ऑर्डर विवरण बहुत लंबा है (अधिकतम 1000 अक्षर)। Order description is too long (maximum 1000 characters).', 'error');
-        return false;
-    }
+    e.preventDefault();
+
+    const formData = new FormData(this);
+
+    fetch('/create_order', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.text();
+        }
+        throw new Error('Network response was not ok');
+    })
+    .then(data => {
+        // Check if response is a redirect (successful order placement)
+        if (data.includes('customer_dashboard') || data.includes('Customer Dashboard')) {
+            window.location.href = '/customer_dashboard';
+        } else {
+            // If it's the same page, there might be an error
+            document.body.innerHTML = data;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error placing order. Please try again.');
+    });
+});
+
+// Form field change handlers
+['window_time', 'order_description'].forEach(fieldId => {
+    document.getElementById(fieldId).addEventListener('change', updateOrderSummary);
 });
 
 // Initialize cost calculation
-updateCostCalculation();
+updateCost();
 </script>
 {% endblock %}
