@@ -140,14 +140,9 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <span class="badge order-status-{{ order.status }}">
+                                            <span class="badge bg-dark text-white">
                                                 {{ order.get_status_display() }}
                                             </span>
-                                            <br><small class="text-muted">
-                                                {% if order.window_time %}
-                                                    <i class="fas fa-clock me-1"></i>{{ order.window_time }}
-                                                {% endif %}
-                                            </small>
                                         </td>
                                         <td>
                                             <div class="qr-scan-progress">
@@ -394,12 +389,66 @@ function callCustomer(phone) {
 }
 
 function viewOrderDetails(orderId) {
-    // This would fetch order details from the server
+    // Find the order in the assigned orders table
+    const orderRow = document.getElementById(`assigned-order-${orderId}`);
+    if (!orderRow) return;
+    
+    // Extract order information from the table row
+    const orderIdText = orderRow.cells[0].textContent.trim();
+    const customerInfo = orderRow.cells[1].textContent.trim();
+    const vendorInfo = orderRow.cells[2].textContent.trim();
+    const statusInfo = orderRow.cells[3].textContent.trim();
+    const qrScanInfo = orderRow.cells[4].textContent.trim();
+    
+    // Parse customer info
+    const customerLines = customerInfo.split('\n').map(s => s.trim()).filter(s => s);
+    const customerName = customerLines[0] || 'N/A';
+    const customerPhone = customerLines[1] || 'N/A';
+    const customerAddress = customerLines.slice(2).join(' ') || 'N/A';
+    
+    // Parse vendor info
+    const vendorLines = vendorInfo.split('\n').map(s => s.trim()).filter(s => s);
+    const vendorName = vendorLines[0] || 'N/A';
+    const vendorPhone = vendorLines[1] || 'N/A';
+    
     const content = `
-        <div class="text-center py-4">
-            <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
-            <h5>Order #TK${orderId} Details</h5>
-            <p class="text-muted">Order details for #TK${orderId}</p>
+        <div class="order-details">
+            <div class="row g-3">
+                <div class="col-12">
+                    <h6><i class="fas fa-info-circle me-2"></i>Order Information</h6>
+                    <div class="bg-light p-3 rounded">
+                        <p><strong>Order ID:</strong> ${orderIdText}</p>
+                        <p><strong>Status:</strong> ${statusInfo}</p>
+                        <p><strong>QR Scans:</strong> ${qrScanInfo}</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h6><i class="fas fa-user me-2"></i>Customer Details</h6>
+                    <div class="bg-light p-3 rounded">
+                        <p><strong>Name:</strong> ${customerName}</p>
+                        <p><strong>Phone:</strong> 
+                            <a href="tel:${customerPhone}" class="btn btn-outline-success btn-sm">${customerPhone}</a>
+                        </p>
+                        <p><strong>Address:</strong> ${customerAddress}</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h6><i class="fas fa-store me-2"></i>Vendor Details</h6>
+                    <div class="bg-light p-3 rounded">
+                        <p><strong>Business:</strong> ${vendorName}</p>
+                        <p><strong>Phone:</strong> 
+                            <a href="tel:${vendorPhone}" class="btn btn-outline-primary btn-sm">${vendorPhone}</a>
+                        </p>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary" onclick="openMaps('${customerAddress}')">
+                            <i class="fas fa-map me-2"></i>Open Customer Location in Maps
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     `;
     

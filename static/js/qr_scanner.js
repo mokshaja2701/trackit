@@ -1,6 +1,7 @@
 
 let qrScanner = null;
 let isScanning = false;
+let currentStream = null;
 
 function initializeQRScanner() {
     console.log('Initializing QR Scanner...');
@@ -19,8 +20,6 @@ function initializeQRScanner() {
         status.className = 'alert alert-danger';
         return;
     }
-    
-    startQRScanner();
 }
 
 function startQRScanner() {
@@ -40,6 +39,7 @@ function startQRScanner() {
         } 
     })
     .then(stream => {
+        currentStream = stream;
         video.srcObject = stream;
         video.play();
         isScanning = true;
@@ -61,8 +61,12 @@ function stopQRScanner() {
     const video = document.getElementById('qrVideo');
     const status = document.getElementById('scannerStatus');
     
+    if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+        currentStream = null;
+    }
+    
     if (video.srcObject) {
-        video.srcObject.getTracks().forEach(track => track.stop());
         video.srcObject = null;
     }
     

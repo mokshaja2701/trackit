@@ -385,3 +385,68 @@ footer {
 .shadow-custom {
     box-shadow: var(--shadow) !important;
 }
+
+/* Status badge styles */
+.badge.bg-dark {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+/* QR Scanner styles */
+.camera-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+    background: #000;
+}
+
+.scanner-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+}
+
+.scanner-frame {
+    width: 200px;
+    height: 200px;
+    border: 3px solid #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 0 99999px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+.scanner-frame::before,
+.scanner-frame::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #ffc107;
+}
+
+.scanner-frame::before {
+    top: -3px;
+    left: -3px;
+    border-right: none;
+    border-bottom: none;
+}
+
+.scanner-frame::after {
+    bottom: -3px;
+    right: -3px;
+    border-left: none;
+    border-top: none;
+}
+
+/* Order status styles */
+.order-status-pending { background-color: #6c757d !important; }
+.order-status-accepted { background-color: #0d6efd !important; }
+.order-status-rejected { background-color: #dc3545 !important; }
+.order-status-dispatched { background-color: #fd7e14 !important; }
+.order-status-in_transit { background-color: #20c997 !important; }
+.order-status-out_for_delivery { background-color: #ffc107 !important; color: #000 !important; }
+.order-status-delivered { background-color: #198754 !important; }
