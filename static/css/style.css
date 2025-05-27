@@ -398,8 +398,10 @@ footer {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 300px;
+    min-height: 400px;
     background: #000;
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
 }
 
 .scanner-overlay {

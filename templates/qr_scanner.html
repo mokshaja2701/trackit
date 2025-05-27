@@ -90,6 +90,17 @@
                             </button>
                         </div>
                     </div>
+                    <div class="mt-3">
+                        <small class="text-muted">Quick test QR codes:</small>
+                        <div class="btn-group-sm mt-1" role="group">
+                            <button type="button" class="btn btn-outline-info btn-sm" onclick="testQR('package')">
+                                Test Package QR
+                            </button>
+                            <button type="button" class="btn btn-outline-success btn-sm" onclick="testQR('delivery')">
+                                Test Delivery QR
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -186,6 +197,20 @@ function processManualQR() {
         input.value = '';
         updateProcessButton();
     }
+}
+
+function testQR(type) {
+    const input = document.getElementById('qrInput');
+    
+    if (type === 'package') {
+        // Use a test package QR for order ID 1
+        input.value = 'TRACKIT_PACKAGE_1_test123';
+    } else if (type === 'delivery') {
+        // Use a test delivery QR for order ID 1
+        input.value = 'TRACKIT_DELIVERY_1_test456';
+    }
+    
+    updateProcessButton();
 }
 </script>
 {% endblock %}

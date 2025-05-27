@@ -125,11 +125,11 @@ def process_package_qr_scan(order, qr_data, scanned_by_user_id):
     try:
         # Verify this is the correct package QR for the order
         if order.package_qr_code != qr_data:
-            return {'success': False, 'error': 'गलत पैकेज QR कोड। Wrong package QR code.'}
+            return {'success': False, 'error': 'Wrong package QR code.'}
         
         # Verify scanner is the assigned delivery partner
         if order.delivery_partner_id != scanned_by_user_id:
-            return {'success': False, 'error': 'अनधिकृत स्कैन। Unauthorized scan.'}
+            return {'success': False, 'error': 'Unauthorized scan.'}
         
         # Update order status based on scan count
         current_scan_count = order.qr_scan_count
@@ -138,13 +138,13 @@ def process_package_qr_scan(order, qr_data, scanned_by_user_id):
             # First scan - Dispatched
             order.status = 'dispatched'
             order.dispatched_at = datetime.now(IST)
-            status_message = 'पैकेज भेजा गया। Package dispatched.'
+            status_message = 'Package dispatched successfully.'
             
         elif current_scan_count == 1:
             # Second scan - In Transit
             order.status = 'in_transit'
             order.in_transit_at = datetime.now(IST)
-            status_message = 'पैकेज ट्रांजिट में है। Package in transit.'
+            status_message = 'Package is now in transit.'
             
         elif current_scan_count == 2:
             # Third scan - Out for Delivery
@@ -155,10 +155,10 @@ def process_package_qr_scan(order, qr_data, scanned_by_user_id):
             delivery_qr = generate_delivery_qr(order.id)
             order.delivery_qr_code = delivery_qr
             
-            status_message = 'पैकेज डिलीवरी के लिए निकला। Package out for delivery.'
+            status_message = 'Package is out for delivery.'
             
         else:
-            return {'success': False, 'error': 'QR कोड पहले से स्कैन किया गया। QR code already scanned maximum times.'}
+            return {'success': False, 'error': 'QR code already scanned maximum times.'}
         
         # Increment scan count
         order.qr_scan_count += 1
@@ -186,22 +186,22 @@ def process_package_qr_scan(order, qr_data, scanned_by_user_id):
         
     except Exception as e:
         logging.error(f"Error processing package QR scan: {str(e)}")
-        return {'success': False, 'error': 'स्कैन प्रसंस्करण में त्रुटि। Error processing scan.'}
+        return {'success': False, 'error': 'Error processing scan.'}
 
 def process_delivery_qr_scan(order, qr_data, scanned_by_user_id):
     """Process delivery QR code scan for final delivery confirmation"""
     try:
         # Verify this is the correct delivery QR for the order
         if order.delivery_qr_code != qr_data:
-            return {'success': False, 'error': 'गलत डिलीवरी QR कोड। Wrong delivery QR code.'}
+            return {'success': False, 'error': 'Wrong delivery QR code.'}
         
         # Verify scanner is the assigned delivery partner
         if order.delivery_partner_id != scanned_by_user_id:
-            return {'success': False, 'error': 'अनधिकृत स्कैन। Unauthorized scan.'}
+            return {'success': False, 'error': 'Unauthorized scan.'}
         
         # Verify order is in correct status
         if order.status != 'out_for_delivery':
-            return {'success': False, 'error': 'आर्डर डिलीवरी के लिए तैयार नहीं। Order not ready for delivery.'}
+            return {'success': False, 'error': 'Order not ready for delivery.'}
         
         # Update order to delivered
         order.status = 'delivered'
@@ -226,11 +226,11 @@ def process_delivery_qr_scan(order, qr_data, scanned_by_user_id):
         
         return {
             'success': True,
-            'message': 'पैकेज सफलतापूर्वक डिलीवर किया गया! Package delivered successfully!',
+            'message': 'Package delivered successfully!',
             'order': order,
             'new_status': 'delivered'
         }
         
     except Exception as e:
         logging.error(f"Error processing delivery QR scan: {str(e)}")
-        return {'success': False, 'error': 'डिलीवरी स्कैन प्रसंस्करण में त्रुटि। Error processing delivery scan.'}
+        return {'success': False, 'error': 'Error processing delivery scan.'}

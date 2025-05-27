@@ -21,7 +21,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Statistics Cards -->
     <div class="row g-4 mb-5">
         <div class="col-md-3">
@@ -35,7 +35,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-md-3">
             <div class="card border-0 shadow-sm stat-card">
                 <div class="card-body text-center">
@@ -49,7 +49,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-md-3">
             <div class="card border-0 shadow-sm stat-card">
                 <div class="card-body text-center">
@@ -61,7 +61,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-md-3">
             <div class="card border-0 shadow-sm stat-card">
                 <div class="card-body text-center">
@@ -74,7 +74,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Quick QR Scanner -->
     <div class="row mb-4">
         <div class="col-12">
@@ -91,7 +91,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Assigned Orders Section -->
     <div class="row mb-4">
         <div class="col-12">
@@ -102,7 +102,7 @@
                         <span class="badge bg-white text-warning ms-2">{{ assigned_orders|length }}</span>
                     </h5>
                 </div>
-                
+
                 <div class="card-body p-0">
                     {% if assigned_orders %}
                         <div class="table-responsive">
@@ -189,7 +189,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Delivery Instructions -->
     <div class="row mb-4">
         <div class="col-12">
@@ -227,7 +227,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Recent Completed Orders -->
     <div class="row">
         <div class="col-12">
@@ -237,7 +237,7 @@
                         <i class="fas fa-check-circle me-2"></i>Recent Completed Deliveries
                     </h5>
                 </div>
-                
+
                 <div class="card-body p-0">
                     {% if completed_orders %}
                         <div class="table-responsive">
@@ -316,150 +316,113 @@
 </div>
 
 <!-- Order Details Modal -->
-<div class="modal fade" id="orderDetailsModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Order Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="orderDetailsContent">
-                <!-- Content will be loaded here -->
+    <div class="modal fade" id="orderDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-info-circle me-2"></i>Order Details
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="orderDetailsContent">
+                    <!-- Content will be loaded here -->
+                </div>
             </div>
         </div>
     </div>
-</div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-function showCustomerLocation(orderId) {
-    // Find the order in the assigned orders
-    const orderRow = document.getElementById(`assigned-order-${orderId}`);
-    if (!orderRow) return;
-    
-    // Extract customer info from the table row
-    const customerInfo = orderRow.cells[1].textContent.trim();
-    const [name, phone, ...addressParts] = customerInfo.split('\n').map(s => s.trim()).filter(s => s);
-    
-    const content = `
-        <div class="customer-location">
-            <div class="row g-3">
-                <div class="col-12">
-                    <h6><i class="fas fa-user me-2"></i>Customer Name</h6>
-                    <p class="fw-bold">${name || 'Name not available'}</p>
-                </div>
-                <div class="col-12">
-                    <h6><i class="fas fa-phone me-2"></i>Phone Number</h6>
-                    <p><a href="tel:${phone}" class="btn btn-outline-success btn-sm">${phone || 'Number not available'}</a></p>
-                </div>
-                <div class="col-12">
-                    <h6><i class="fas fa-map-marker-alt me-2"></i>Full Address</h6>
-                    <div class="bg-light p-3 rounded">
-                        <p class="mb-0">${addressParts.join(' ') || 'Address loading...'}</p>
-                    </div>
-                </div>
-                <div class="col-12">
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-primary" onclick="openMaps('${addressParts.join(' ')}')">
-                            <i class="fas fa-map me-2"></i>Open in Maps
-                        </button>
-                        <button class="btn btn-success" onclick="callCustomer('${phone}')">
-                            <i class="fas fa-phone me-2"></i>Call Customer
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    document.getElementById('customerLocationContent').innerHTML = content;
-    new bootstrap.Modal(document.getElementById('customerLocationModal')).show();
-}
-
-function openMaps(address) {
-    // Open Google Maps with the address
-    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
-    window.open(mapsUrl, '_blank');
-}
-
-function callCustomer(phone) {
-    // Initiate phone call
-    window.location.href = `tel:${phone}`;
-}
+// Orders data
+const ordersData = [
+    {% for order in assigned_orders %}
+    {
+        id: {{ order.id }},
+        status: '{{ order.status }}',
+        status_display: '{{ order.get_status_display() }}',
+        description: '{{ order.order_description|escape }}',
+        window_time: '{{ order.window_time }}',
+        delivery_speed: '{{ order.delivery_speed }}',
+        customer_name: '{{ order.customer.full_name }}',
+        customer_phone: '{{ order.customer.phone }}',
+        customer_address: '{{ order.customer.address }}',
+        vendor_name: '{{ order.vendor.vendor_profile.business_name if order.vendor.vendor_profile else order.vendor.full_name }}',
+        vendor_phone: '{{ order.vendor.phone }}',
+        qr_scan_count: {{ order.qr_scan_count }},
+        estimated_amount: {{ order.estimated_amount or 0 }}
+    },
+    {% endfor %}
+];
 
 function viewOrderDetails(orderId) {
-    // Find the order in the assigned orders table
-    const orderRow = document.getElementById(`assigned-order-${orderId}`);
-    if (!orderRow) return;
-    
-    // Extract order information from the table row
-    const orderIdText = orderRow.cells[0].textContent.trim();
-    const customerInfo = orderRow.cells[1].textContent.trim();
-    const vendorInfo = orderRow.cells[2].textContent.trim();
-    const statusInfo = orderRow.cells[3].textContent.trim();
-    const qrScanInfo = orderRow.cells[4].textContent.trim();
-    
-    // Parse customer info
-    const customerLines = customerInfo.split('\n').map(s => s.trim()).filter(s => s);
-    const customerName = customerLines[0] || 'N/A';
-    const customerPhone = customerLines[1] || 'N/A';
-    const customerAddress = customerLines.slice(2).join(' ') || 'N/A';
-    
-    // Parse vendor info
-    const vendorLines = vendorInfo.split('\n').map(s => s.trim()).filter(s => s);
-    const vendorName = vendorLines[0] || 'N/A';
-    const vendorPhone = vendorLines[1] || 'N/A';
-    
+    const order = ordersData.find(o => o.id === orderId);
+    if (!order) {
+        alert('Order not found');
+        return;
+    }
+
     const content = `
         <div class="order-details">
             <div class="row g-3">
                 <div class="col-12">
                     <h6><i class="fas fa-info-circle me-2"></i>Order Information</h6>
                     <div class="bg-light p-3 rounded">
-                        <p><strong>Order ID:</strong> ${orderIdText}</p>
-                        <p><strong>Status:</strong> ${statusInfo}</p>
-                        <p><strong>QR Scans:</strong> ${qrScanInfo}</p>
+                        <p><strong>Order ID:</strong> #TK${order.id}</p>
+                        <p><strong>Status:</strong> ${order.status_display}</p>
+                        <p><strong>Description:</strong> ${order.description}</p>
+                        <p><strong>Window Time:</strong> ${order.window_time}</p>
+                        <p><strong>Delivery Speed:</strong> ${order.delivery_speed}</p>
+                        <p><strong>QR Scans:</strong> ${order.qr_scan_count}/3</p>
+                        <p><strong>Amount:</strong> ₹${order.estimated_amount}</p>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <h6><i class="fas fa-user me-2"></i>Customer Details</h6>
                     <div class="bg-light p-3 rounded">
-                        <p><strong>Name:</strong> ${customerName}</p>
+                        <p><strong>Name:</strong> ${order.customer_name}</p>
                         <p><strong>Phone:</strong> 
-                            <a href="tel:${customerPhone}" class="btn btn-outline-success btn-sm">${customerPhone}</a>
+                            <a href="tel:${order.customer_phone}" class="btn btn-outline-success btn-sm">${order.customer_phone}</a>
                         </p>
-                        <p><strong>Address:</strong> ${customerAddress}</p>
+                        <p><strong>Address:</strong> ${order.customer_address}</p>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <h6><i class="fas fa-store me-2"></i>Vendor Details</h6>
                     <div class="bg-light p-3 rounded">
-                        <p><strong>Business:</strong> ${vendorName}</p>
+                        <p><strong>Business:</strong> ${order.vendor_name}</p>
                         <p><strong>Phone:</strong> 
-                            <a href="tel:${vendorPhone}" class="btn btn-outline-primary btn-sm">${vendorPhone}</a>
+                            <a href="tel:${order.vendor_phone}" class="btn btn-outline-primary btn-sm">${order.vendor_phone}</a>
                         </p>
-                    </div>
-                </div>
-                <div class="col-12">
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-primary" onclick="openMaps('${customerAddress}')">
-                            <i class="fas fa-map me-2"></i>Open Customer Location in Maps
-                        </button>
                     </div>
                 </div>
             </div>
         </div>
     `;
-    
+
     document.getElementById('orderDetailsContent').innerHTML = content;
     new bootstrap.Modal(document.getElementById('orderDetailsModal')).show();
 }
 
-// Auto-refresh the dashboard every 30 seconds
-setInterval(() => {
-    // You could implement real-time updates here
-    console.log('Checking for new assignments...');
-}, 30000);
+// WebSocket connection for real-time updates
+const socket = io();
+
+socket.on('connect', function() {
+    console.log('Connected to server');
+    socket.emit('join_room', {});
+});
+
+socket.on('order_status_update', function(data) {
+    console.log('Order status updated:', data);
+    // Refresh the page to show updated data
+    location.reload();
+});
+
+socket.on('new_assignment', function(data) {
+    console.log('New assignment received:', data);
+    // Show notification or refresh page
+    location.reload();
+});
 </script>
 {% endblock %}

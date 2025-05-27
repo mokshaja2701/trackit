@@ -104,9 +104,36 @@ function scanForQRCode() {
 }
 
 function detectQRInImageData(imageData) {
-    // Placeholder for QR detection
-    // In a real implementation, you would use a QR code detection library
-    // For testing, we'll detect based on manual input
+    // Simple QR detection simulation
+    // In production, you'd use a library like jsQR
+    // For now, we'll rely on manual input or test with known QR patterns
+    
+    // Check for basic QR-like patterns in the image
+    // This is a simplified version - in real apps use jsQR library
+    try {
+        // Simulate QR detection by checking image contrast
+        const data = imageData.data;
+        let blackPixels = 0;
+        let whitePixels = 0;
+        
+        // Sample pixels to detect QR-like patterns
+        for (let i = 0; i < data.length; i += 40) {
+            const brightness = (data[i] + data[i + 1] + data[i + 2]) / 3;
+            if (brightness < 128) blackPixels++;
+            else whitePixels++;
+        }
+        
+        // If we have a good mix of black and white pixels, it might be a QR code
+        const ratio = Math.min(blackPixels, whitePixels) / Math.max(blackPixels, whitePixels);
+        
+        // This is just for demo - replace with actual QR library
+        if (ratio > 0.3 && blackPixels > 100 && whitePixels > 100) {
+            console.log('Potential QR code detected, but need actual QR library for decoding');
+        }
+        
+    } catch (err) {
+        console.log('QR detection error:', err);
+    }
 }
 
 function processQRCode(qrData) {
@@ -115,34 +142,81 @@ function processQRCode(qrData) {
         return;
     }
     
+    console.log('Processing QR code:', qrData);
+    
     // Stop scanning temporarily
     const wasScanning = isScanning;
     if (wasScanning) {
         isScanning = false;
     }
     
+    // Update status
+    const status = document.getElementById('scannerStatus');
+    status.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing QR code...';
+    status.className = 'alert alert-info';
+    
     // Send to server for processing
     fetch('/scan_qr', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || ''
         },
         body: JSON.stringify({ qr_data: qrData })
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Server response status:', response.status);
+        return response.json();
+    })
     .then(data => {
+        console.log('Server response data:', data);
+        
         if (data.success) {
             showScanResult(true, data.message || 'QR code scanned successfully!', data);
             addToScanHistory(qrData, true, data.message);
+            
+            // Update status
+            status.innerHTML = '<i class="fas fa-check me-2"></i>QR code processed successfully!';
+            status.className = 'alert alert-success';
         } else {
             showScanResult(false, data.error || 'Failed to process QR code');
             addToScanHistory(qrData, false, data.error);
+            
+            // Update status
+            status.innerHTML = '<i class="fas fa-times me-2"></i>Failed to process QR code';
+            status.className = 'alert alert-danger';
+        }
+        
+        // Resume scanning after 3 seconds if it was active
+        if (wasScanning) {
+            setTimeout(() => {
+                if (!isScanning) {
+                    isScanning = true;
+                    status.innerHTML = '<i class="fas fa-qrcode me-2"></i>Scanner active - Hold QR code in view';
+                    status.className = 'alert alert-success';
+                }
+            }, 3000);
         }
     })
     .catch(error => {
         console.error('Error processing QR:', error);
         showScanResult(false, 'Network error - please try again');
         addToScanHistory(qrData, false, 'Network error');
+        
+        // Update status
+        status.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Network error occurred';
+        status.className = 'alert alert-danger';
+        
+        // Resume scanning after 3 seconds if it was active
+        if (wasScanning) {
+            setTimeout(() => {
+                if (!isScanning) {
+                    isScanning = true;
+                    status.innerHTML = '<i class="fas fa-qrcode me-2"></i>Scanner active - Hold QR code in view';
+                    status.className = 'alert alert-success';
+                }
+            }, 3000);
+        }
     });
 }
 
