@@ -1,65 +1,79 @@
 import os
-import logging
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
+from flask import Flask, render_template, request, redirect, url_for, flash
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required
 from flask_socketio import SocketIO
-from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
-
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
-
-class Base(DeclarativeBase):
-    pass
+from supabase import create_client, Client
 
 # Initialize extensions
-db = SQLAlchemy(model_class=Base)
 login_manager = LoginManager()
 socketio = SocketIO()
 
+# Initialize Supabase client
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+class User(UserMixin):
+    def __init__(self, id_, email):
+        self.id = id_
+        self.email = email
+
+    @staticmethod
+    def get(user_id):
+        response = supabase.table("users").select("*").eq("id", user_id).single().execute()
+        data = response.data
+        if data:
+            return User(data["id"], data["email"])
+        return None
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.get(user_id)
+
 def create_app():
-    # Create Flask app
     app = Flask(__name__)
-    
-    # App configuration
     app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key")
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
-    
-    # Database configuration
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///trackit.db")
-    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-        "pool_recycle": 300,
-        "pool_pre_ping": True,
-    }
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    
-    # Initialize extensions with app
-    db.init_app(app)
+
     login_manager.init_app(app)
     socketio.init_app(app, cors_allowed_origins="*")
-    
-    # Configure login manager
     login_manager.login_view = 'login'
     login_manager.login_message = 'कृपया लॉगिन करें। Please log in to access this page.'
     login_manager.login_message_category = 'info'
-    
-    @login_manager.user_loader
-    def load_user(user_id):
-        from models import User
-        return User.query.get(int(user_id))
-    
-    # Create tables
-    with app.app_context():
-        import models  # noqa: F401
-        db.create_all()
-        logging.info("Database tables created successfully")
-        
-        # Initialize mock data with exact specifications
-        from indian_data import initialize_mock_data
-        initialize_mock_data()
-    
+
+    @app.route("/")
+    def home():
+        return redirect(url_for("login"))
+
+    @app.route("/login", methods=["GET", "POST"])
+    def login():
+        if request.method == "POST":
+            email = request.form["email"]
+            password = request.form["password"]
+            response = supabase.table("users").select("*").eq("email", email).single().execute()
+            user_data = response.data
+            if user_data and user_data.get("password") == password:  # WARNING: Store passwords securely in production!
+                user = User(user_data["id"], user_data["email"])
+                login_user(user)
+                return redirect(url_for("index"))
+            else:
+                flash("Invalid credentials", "danger")
+        return render_template("login.html")
+
+    @app.route("/logout")
+    @login_required
+    def logout():
+        logout_user()
+        return redirect(url_for("login"))
+
+    @app.route("/index")
+    @login_required
+    def index():
+        response = supabase.table("users").select("id,email").execute()
+        users = response.data
+        return render_template("index.html", users=users)
+
     return app
 
-# Create app instance
 app = create_app()
