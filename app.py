@@ -2,6 +2,7 @@ import os
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required
 from flask_socketio import SocketIO
+from werkzeug.security import check_password_hash
 from werkzeug.middleware.proxy_fix import ProxyFix
 from supabase import create_client, Client
 
@@ -53,7 +54,7 @@ def create_app():
             password = request.form["password"]
             response = supabase.table("users").select("*").eq("email", email).single().execute()
             user_data = response.data
-            if user_data and user_data.get("password") == password:  # WARNING: Store passwords securely in production!
+            if user_data and check_password_hash(user_data.get("password_hash", ""), password):
                 user = User(user_data["id"], user_data["email"])
                 login_user(user)
                 return redirect(url_for("index"))
